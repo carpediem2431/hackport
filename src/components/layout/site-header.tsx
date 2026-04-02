@@ -22,7 +22,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-      <div className="container-shell flex h-20 items-center justify-between gap-4">
+      <div className="container-shell flex h-14 items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-3">
           <Image
             src="/brand/hackport.svg"

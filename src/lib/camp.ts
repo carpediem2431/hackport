@@ -3,8 +3,10 @@ import { CampProfile, TeamPost } from "@/lib/types";
 export function getTeamFitScore(profile: CampProfile, team: TeamPost) {
   let score = 20;
   const reasons: string[] = [];
+  const profileRole = profile.role.trim().toLowerCase();
+  const teamRoles = team.lookingFor.map((role) => role.trim().toLowerCase());
 
-  if (profile.role && team.neededRoles.includes(profile.role)) {
+  if (profileRole && teamRoles.some((role) => role.includes(profileRole) || profileRole.includes(role))) {
     score += 30;
     reasons.push("역할이 정확히 맞습니다");
   }

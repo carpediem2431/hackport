@@ -1,5 +1,5 @@
-﻿import LanyardProfile from "@/components/react-bits/lanyard-profile";
-import ReflectiveProfileCard from "@/components/react-bits/reflective-profile-card";
+import LanyardProfile from "@/components/react-bits/lanyard-profile";
+import ReflectiveCard from "@/components/ReflectiveCard";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -49,7 +49,21 @@ export default function MyPage() {
             </div>
           </Card>
 
-          <ReflectiveProfileCard />
+          <div style={{ height: "600px", position: "relative" }}>
+            <ReflectiveCard
+              overlayColor="rgba(0, 0, 0, 0.2)"
+              blurStrength={12}
+              glassDistortion={30}
+              metalness={1}
+              roughness={0.75}
+              displacementStrength={20}
+              noiseScale={1}
+              specularConstant={5}
+              grayscale={0.15}
+              color="#000000"
+              className="h-full w-full"
+            />
+          </div>
         </div>
 
         <Card className="surface-tint overflow-hidden p-0">

@@ -1,5 +1,11 @@
 export type HackathonStatus = "upcoming" | "live" | "closed";
 
+export type PrizeTier = {
+  title: string;
+  reward: string;
+  description: string;
+};
+
 export type Hackathon = {
   slug: string;
   title: string;
@@ -8,6 +14,7 @@ export type Hackathon = {
   host: string;
   description: string;
   tags: string[];
+  participantCount: number;
   dates: {
     registrationOpen: string;
     registrationClose: string;
@@ -25,6 +32,7 @@ export type Hackathon = {
     date: string;
     detail: string;
   }[];
+  prizes: PrizeTier[];
   submissionRules: {
     required: string[];
     optional: string[];
@@ -42,6 +50,7 @@ export type UserProgress = {
 };
 
 export type CampProfile = {
+  nickname: string;
   role: string;
   techStacks: string[];
   collaborationStyle: string;
@@ -49,24 +58,53 @@ export type CampProfile = {
   beginnerFriendly: boolean;
 };
 
+export type TeamMessage = {
+  id: string;
+  sender: "me" | "team";
+  body: string;
+  createdAt: string;
+};
+
+export type TeamInvite = {
+  id: string;
+  teamId: string;
+  hackathonSlug: string;
+  senderName: string;
+  note: string;
+  status: "pending" | "accepted" | "rejected";
+  createdAt: string;
+};
+
 export type TeamPost = {
   id: string;
   hackathonSlug: string;
   teamName: string;
   intro: string;
-  neededRoles: string[];
+  lookingFor: string[];
   techStacks: string[];
-  contactLink: string;
-  recruiting: boolean;
+  contactUrl: string;
+  isOpen: boolean;
   collaborationStyle: string;
   beginnerFriendly: boolean;
+  ownerId: "demo" | "local-user";
+  messages: TeamMessage[];
+  updatedAt: string;
+};
+
+export type SubmissionFile = {
+  name: string;
+  type: string;
+  size: number;
+  dataUrl: string;
+  uploadedAt: string;
 };
 
 export type SubmissionDraft = {
-  ideaDoc: string;
+  notes: string;
   demoLink: string;
   repoLink: string;
   fileMeta: string;
+  uploadedFile: SubmissionFile | null;
   privateMemo: string;
   publicSummary: string;
   submittedAt: string | null;
@@ -90,7 +128,7 @@ export type GlobalRankingEntry = {
   points: number;
   badges: string[];
   trend: "hot" | "steady" | "rising";
-  period: "weekly" | "all";
+  period: "7d" | "30d" | "all";
 };
 
 export type CopilotState = {

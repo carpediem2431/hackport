@@ -2,6 +2,7 @@ import {
   GlobalRankingEntry,
   Hackathon,
   LeaderboardEntry,
+  TeamInvite,
   TeamPost,
 } from "@/lib/types";
 
@@ -15,6 +16,7 @@ export const hackathons: Hackathon[] = [
     description:
       "A product-focused sprint for teams building useful AI experiences with a sharp demo and explainable value proposition.",
     tags: ["AI", "Product", "Frontend", "Student Friendly"],
+    participantCount: 184,
     dates: {
       registrationOpen: "2026-03-10",
       registrationClose: "2026-04-04",
@@ -35,6 +37,11 @@ export const hackathons: Hackathon[] = [
       { title: "Submission Deadline", date: "2026-04-07", detail: "All links and deck locked" },
       { title: "Final Showcase", date: "2026-04-10", detail: "Live top-team presentation" },
     ],
+    prizes: [
+      { title: "Grand Prize", reward: "₩3,000,000", description: "Best overall product, execution, and demo narrative." },
+      { title: "Audience Favorite", reward: "₩1,000,000", description: "Live showcase votes from the final demo audience." },
+      { title: "Fastest Momentum", reward: "Mentor Pass", description: "Most improved team between checkpoint and final showcase." },
+    ],
     submissionRules: {
       required: ["Public summary", "Demo URL", "Repository URL"],
       optional: ["Pitch deck", "Video walkthrough", "Additional file bundle"],
@@ -50,6 +57,7 @@ export const hackathons: Hackathon[] = [
     description:
       "A sustainability hackathon for teams building analytics, logistics, and automation tools that cut waste and improve visibility.",
     tags: ["Climate", "Data", "Ops", "Open API"],
+    participantCount: 121,
     dates: {
       registrationOpen: "2026-03-28",
       registrationClose: "2026-04-18",
@@ -70,10 +78,15 @@ export const hackathons: Hackathon[] = [
       { title: "Submission Deadline", date: "2026-04-24", detail: "Deck, demo, and evidence bundle due" },
       { title: "Awards", date: "2026-04-28", detail: "Leaderboard and badge reveal" },
     ],
+    prizes: [
+      { title: "Impact Award", reward: "₩2,000,000", description: "Highest measurable environmental upside." },
+      { title: "Ops Excellence", reward: "Pilot Review", description: "Best operator-facing workflow and data clarity." },
+      { title: "Open API Track", reward: "Partner Credits", description: "Most effective use of sponsor APIs and logistics data." },
+    ],
     submissionRules: {
       required: ["Public summary", "Evidence note", "Demo URL"],
       optional: ["Repository URL", "Pitch deck"],
-      acceptedFormats: ["URL", "PDF"],
+      acceptedFormats: ["URL", "PDF", "CSV"],
     },
   },
   {
@@ -85,6 +98,7 @@ export const hackathons: Hackathon[] = [
     description:
       "A broad student hackathon focused on collaboration, demos, and strong storytelling across engineering, design, and planning.",
     tags: ["Student", "Design", "Prototype", "Campus"],
+    participantCount: 238,
     dates: {
       registrationOpen: "2026-02-01",
       registrationClose: "2026-02-25",
@@ -105,10 +119,15 @@ export const hackathons: Hackathon[] = [
       { title: "Submission Deadline", date: "2026-03-03", detail: "Demo package locked" },
       { title: "Results", date: "2026-03-07", detail: "Badge and leaderboard archive" },
     ],
+    prizes: [
+      { title: "Best Campus Product", reward: "₩1,500,000", description: "Strongest student-built concept and prototype." },
+      { title: "Design Sprint Award", reward: "Design Mentoring", description: "Most polished narrative and interaction design." },
+      { title: "Community Pick", reward: "Feature Spotlight", description: "Favorite project from cross-campus mentors." },
+    ],
     submissionRules: {
       required: ["Public summary", "Demo URL"],
       optional: ["Repository URL", "Video walkthrough"],
-      acceptedFormats: ["URL", "MP4"],
+      acceptedFormats: ["URL", "MP4", "PDF"],
     },
   },
 ];
@@ -119,36 +138,79 @@ export const demoTeamPosts: TeamPost[] = [
     hackathonSlug: "ai-build-sprint-seoul",
     teamName: "Signal Forge",
     intro: "We are building an AI meeting copilot for hackathon teams and need a product-minded frontend partner.",
-    neededRoles: ["frontend", "designer"],
+    lookingFor: ["frontend", "designer"],
     techStacks: ["Next.js", "TypeScript", "OpenAI", "Supabase"],
-    contactLink: "https://open.kakao.com/o/hackport-signal",
-    recruiting: true,
+    contactUrl: "https://open.kakao.com/o/hackport-signal",
+    isOpen: true,
     collaborationStyle: "fast-feedback",
     beginnerFriendly: true,
+    ownerId: "demo",
+    messages: [],
+    updatedAt: "2026-04-01T09:00:00.000Z",
   },
   {
     id: "team-2",
     hackathonSlug: "green-systems-hack",
     teamName: "Carbon Loop",
     intro: "Ops dashboard team tracking warehouse waste and reroute opportunities. Looking for a data engineer or PM.",
-    neededRoles: ["data", "pm"],
+    lookingFor: ["data", "pm"],
     techStacks: ["Python", "Mapbox", "Next.js", "Postgres"],
-    contactLink: "https://open.kakao.com/o/hackport-carbon",
-    recruiting: true,
+    contactUrl: "https://open.kakao.com/o/hackport-carbon",
+    isOpen: true,
     collaborationStyle: "structured",
     beginnerFriendly: false,
+    ownerId: "demo",
+    messages: [],
+    updatedAt: "2026-04-01T11:20:00.000Z",
   },
   {
     id: "team-3",
     hackathonSlug: "campus-maker-fest",
     teamName: "Studio Orbit",
     intro: "Closed hackathon archive team. Great reference for how strong student demos are presented.",
-    neededRoles: ["none"],
+    lookingFor: ["none"],
     techStacks: ["Framer", "Next.js", "Firebase"],
-    contactLink: "https://example.com/archive",
-    recruiting: false,
+    contactUrl: "https://example.com/archive",
+    isOpen: false,
     collaborationStyle: "craft-first",
     beginnerFriendly: true,
+    ownerId: "demo",
+    messages: [],
+    updatedAt: "2026-03-10T08:00:00.000Z",
+  },
+  {
+    id: "team-local-1",
+    hackathonSlug: "ai-build-sprint-seoul",
+    teamName: "Prompt Harbor",
+    intro: "Local demo owner team for testing edit, close, invite accept/reject, and Camp message flows inside the browser.",
+    lookingFor: ["designer", "pm"],
+    techStacks: ["Next.js", "TypeScript", "Vercel AI SDK"],
+    contactUrl: "https://open.kakao.com/o/hackport-local",
+    isOpen: true,
+    collaborationStyle: "fast-feedback",
+    beginnerFriendly: true,
+    ownerId: "local-user",
+    messages: [
+      {
+        id: "msg-1",
+        sender: "team",
+        body: "로컬 팀 데모입니다. Camp에서 메시지와 모집 상태를 테스트해 보세요.",
+        createdAt: "2026-04-02T09:10:00.000Z",
+      },
+    ],
+    updatedAt: "2026-04-02T09:10:00.000Z",
+  },
+];
+
+export const demoTeamInvites: TeamInvite[] = [
+  {
+    id: "invite-1",
+    teamId: "team-local-1",
+    hackathonSlug: "ai-build-sprint-seoul",
+    senderName: "Design Miner",
+    note: "프로토타입 화면 설계와 발표자료 정리에 강합니다. 오늘 밤 바로 합류 가능합니다.",
+    status: "pending",
+    createdAt: "2026-04-02T10:00:00.000Z",
   },
 ];
 
@@ -184,6 +246,21 @@ export const demoLeaderboard: LeaderboardEntry[] = [
     submitted: true,
   },
   {
+    hackathonSlug: "ai-build-sprint-seoul",
+    teamName: "Prompt Harbor",
+    totalScore: 0,
+    breakdown: [
+      { label: "Problem Fit", score: 0 },
+      { label: "Execution", score: 0 },
+      { label: "Technical Depth", score: 0 },
+      { label: "Demo Story", score: 0 },
+      { label: "Impact", score: 0 },
+    ],
+    badges: ["미제출"],
+    delta: "flat",
+    submitted: false,
+  },
+  {
     hackathonSlug: "green-systems-hack",
     teamName: "Carbon Loop",
     totalScore: 84,
@@ -216,9 +293,12 @@ export const demoLeaderboard: LeaderboardEntry[] = [
 ];
 
 export const globalRankings: GlobalRankingEntry[] = [
-  { nickname: "SignalForge", points: 1480, badges: ["Top Builder", "Demo Ace"], trend: "hot", period: "weekly" },
-  { nickname: "CarbonLoop", points: 1330, badges: ["Impact Track"], trend: "rising", period: "weekly" },
-  { nickname: "OrbitCrew", points: 1285, badges: ["Design Sprint"], trend: "steady", period: "weekly" },
+  { nickname: "SignalForge", points: 1480, badges: ["Top Builder", "Demo Ace"], trend: "hot", period: "7d" },
+  { nickname: "CarbonLoop", points: 1330, badges: ["Impact Track"], trend: "rising", period: "7d" },
+  { nickname: "OrbitCrew", points: 1285, badges: ["Design Sprint"], trend: "steady", period: "7d" },
+  { nickname: "SignalForge", points: 2840, badges: ["Top Builder", "Demo Ace"], trend: "hot", period: "30d" },
+  { nickname: "OrbitCrew", points: 2710, badges: ["Design Sprint"], trend: "steady", period: "30d" },
+  { nickname: "CarbonLoop", points: 2650, badges: ["Impact Track"], trend: "rising", period: "30d" },
   { nickname: "SignalForge", points: 5420, badges: ["Top Builder", "Demo Ace"], trend: "hot", period: "all" },
   { nickname: "OrbitCrew", points: 5190, badges: ["Design Sprint"], trend: "steady", period: "all" },
   { nickname: "CarbonLoop", points: 5050, badges: ["Impact Track"], trend: "rising", period: "all" },

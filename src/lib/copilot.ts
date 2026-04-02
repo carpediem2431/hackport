@@ -12,7 +12,7 @@ export function getCopilotState(
   const pending: string[] = [];
 
   const viewedOverview = progress?.viewedSections.includes("overview");
-  const hasTeam = progress?.hasTeam || teamPosts.some((team) => team.hackathonSlug === slug && !team.recruiting);
+  const hasTeam = progress?.hasTeam || teamPosts.some((team) => team.hackathonSlug === slug && !team.isOpen);
   const hasDraft = progress?.hasDraft || Boolean(submission?.publicSummary || submission?.demoLink);
   const isSubmitted = progress?.isSubmitted || Boolean(submission?.submittedAt);
 

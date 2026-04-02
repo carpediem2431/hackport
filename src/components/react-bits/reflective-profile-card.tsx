@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Activity, Fingerprint, Lock, User } from "lucide-react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { Activity, Fingerprint, Lock } from "lucide-react";
 import styles from "@/components/react-bits/reflective-profile-card.module.css";
 
 interface ReflectiveCardProps {
@@ -33,13 +33,25 @@ export default function ReflectiveProfileCard({
   className = "",
   style = {},
 }: ReflectiveCardProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [streamActive, setStreamActive] = useState(false);
+  const [cameraUnavailable, setCameraUnavailable] = useState(false);
+  const [pointerPosition, setPointerPosition] = useState({ x: 50, y: 50 });
+  const filterId = useId();
+  const svgFilterId = useMemo(() => filterId.replace(/:/g, "-"), [filterId]);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
+    let cancelled = false;
+    const videoElement = videoRef.current;
 
     const startWebcam = async () => {
+      if (!("mediaDevices" in navigator) || !navigator.mediaDevices?.getUserMedia) {
+        setCameraUnavailable(true);
+        return;
+      }
+
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
@@ -49,69 +61,161 @@ export default function ReflectiveProfileCard({
           },
         });
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          setStreamActive(true);
+        if (!videoElement || cancelled) {
+          stream.getTracks().forEach((track) => {
+            track.stop();
+          });
+          return;
+        }
+
+        videoElement.srcObject = stream;
+
+        const markReady = () => {
+          if (!cancelled) {
+            setStreamActive(true);
+            setCameraUnavailable(false);
+          }
+        };
+
+        videoElement.onloadedmetadata = () => {
+          void videoElement.play().then(markReady).catch(() => {
+            markReady();
+          });
+        };
+
+        if (videoElement.readyState >= HTMLMediaElement.HAVE_METADATA) {
+          void videoElement.play().then(markReady).catch(() => {
+            markReady();
+          });
         }
       } catch (error) {
-        console.error("Error accessing webcam:", error);
+        if (!cancelled) {
+          setStreamActive(false);
+          setCameraUnavailable(true);
+        }
+        console.warn("Reflective card webcam unavailable, using gradient fallback.", error);
       }
     };
 
     startWebcam();
 
     return () => {
+      cancelled = true;
+
+      if (videoElement) {
+        videoElement.onloadedmetadata = null;
+        videoElement.srcObject = null;
+      }
+
       if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
+        stream.getTracks().forEach((track) => {
+          track.stop();
+        });
       }
     };
   }, []);
 
-  const baseFrequency = 0.03 / Math.max(0.1, noiseScale);
-  const saturation = 1 - Math.max(0, Math.min(1, grayscale));
+  useEffect(() => {
+    const containerElement = containerRef.current;
+
+    if (!containerElement) {
+      return;
+    }
+
+    const handlePointerMove = (event: MouseEvent) => {
+      const rect = containerElement.getBoundingClientRect();
+      setPointerPosition({
+        x: ((event.clientX - rect.left) / rect.width) * 100,
+        y: ((event.clientY - rect.top) / rect.height) * 100,
+      });
+    };
+
+    const handlePointerLeave = () => {
+      setPointerPosition({ x: 50, y: 50 });
+    };
+
+    containerElement.addEventListener("mousemove", handlePointerMove);
+    containerElement.addEventListener("mouseleave", handlePointerLeave);
+
+    return () => {
+      containerElement.removeEventListener("mousemove", handlePointerMove);
+      containerElement.removeEventListener("mouseleave", handlePointerLeave);
+    };
+  }, []);
+
+  const normalizedRoughness = Math.max(0, Math.min(1, roughness));
+  const normalizedMetalness = Math.max(0, Math.min(1.5, metalness));
+  const baseFrequency = 0.008 / Math.max(0.5, noiseScale);
+  const grayscaleAmount = Math.max(0, Math.min(1, grayscale));
+  const effectiveDisplacement = displacementStrength * (0.08 + (1 - normalizedRoughness) * 0.1);
+  const effectiveGlassDistortion = glassDistortion * (0.03 + (1 - normalizedRoughness) * 0.05);
+  const effectiveSpecularConstant = 0.3 + specularConstant * 0.06 * normalizedMetalness;
+  const specularExponent = 16 + normalizedMetalness * 6 - normalizedRoughness * 4;
+  const erodeRadius = 8 + normalizedMetalness * 2;
+  const blurDeviation = 18 - normalizedRoughness * 2;
 
   const cssVariables = {
     "--blur-strength": `${blurStrength}px`,
-    "--metalness": metalness,
-    "--roughness": roughness,
+    "--metalness": normalizedMetalness,
+    "--roughness": normalizedRoughness,
     "--overlay-color": overlayColor,
     "--text-color": color,
-    "--saturation": saturation,
+    "--grayscale": grayscaleAmount,
+    "--pointer-x": `${pointerPosition.x}%`,
+    "--pointer-y": `${pointerPosition.y}%`,
   } as React.CSSProperties;
 
   return (
-    <div className={`${styles.container} ${className}`.trim()} style={{ ...style, ...cssVariables }}>
+    <div
+      ref={containerRef}
+      className={`${styles.container} ${className}`.trim()}
+      style={{ ...style, ...cssVariables }}
+    >
       <svg className={styles.filters} aria-hidden="true">
         <defs>
-          <filter id="metallic-displacement" x="-20%" y="-20%" width="140%" height="140%">
+          <filter id={svgFilterId} x="-20%" y="-20%" width="140%" height="140%">
             <feTurbulence type="turbulence" baseFrequency={baseFrequency} numOctaves="2" result="noise" />
             <feColorMatrix in="noise" type="luminanceToAlpha" result="noiseAlpha" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale={displacementStrength} xChannelSelector="R" yChannelSelector="G" result="rippled" />
-            <feSpecularLighting in="noiseAlpha" surfaceScale={displacementStrength} specularConstant={specularConstant} specularExponent="20" lightingColor="#ffffff" result="light">
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale={effectiveDisplacement} xChannelSelector="R" yChannelSelector="G" result="rippled" />
+            <feSpecularLighting in="noiseAlpha" surfaceScale={effectiveDisplacement} specularConstant={effectiveSpecularConstant} specularExponent={specularExponent} lightingColor="#ffffff" result="light">
               <fePointLight x="0" y="0" z="300" />
             </feSpecularLighting>
             <feComposite in="light" in2="rippled" operator="in" result="light-effect" />
             <feBlend in="light-effect" in2="rippled" mode="screen" result="metallic-result" />
             <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="solidAlpha" />
-            <feMorphology in="solidAlpha" operator="erode" radius="45" result="erodedAlpha" />
-            <feGaussianBlur in="erodedAlpha" stdDeviation="10" result="blurredMap" />
+            <feMorphology in="solidAlpha" operator="erode" radius={erodeRadius} result="erodedAlpha" />
+            <feGaussianBlur in="erodedAlpha" stdDeviation={blurDeviation} result="blurredMap" />
             <feComponentTransfer in="blurredMap" result="glassMap">
               <feFuncA type="linear" slope="0.5" intercept="0" />
             </feComponentTransfer>
-            <feDisplacementMap in="metallic-result" in2="glassMap" scale={glassDistortion} xChannelSelector="A" yChannelSelector="A" result="final" />
+            <feDisplacementMap in="metallic-result" in2="glassMap" scale={effectiveGlassDistortion} xChannelSelector="A" yChannelSelector="A" result="final" />
           </filter>
         </defs>
       </svg>
 
-      {streamActive ? (
-        <video ref={videoRef} autoPlay playsInline muted className={styles.video} />
-      ) : (
-        <div className={styles.video} style={{ background: "linear-gradient(135deg, #1d1333, #5227FF 55%, #b19eef)" }} />
-      )}
+      <div className={styles.effects} style={{ filter: `url(#${svgFilterId})` }}>
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className={`${styles.video} ${streamActive ? styles.videoVisible : styles.videoHidden}`}
+        />
+        <div
+          className={`${styles.fallback} ${streamActive ? styles.fallbackHidden : ""}`.trim()}
+          style={{
+            background: cameraUnavailable
+              ? "linear-gradient(135deg, #17132b, #3e2780 48%, #8a72ff)"
+              : "linear-gradient(135deg, #1d1333, #5227FF 55%, #b19eef)",
+          }}
+        />
 
-      <div className={styles.noise} />
-      <div className={styles.sheen} />
-      <div className={styles.overlay} />
+        <div className={styles.noise} />
+        <div className={styles.spotlight} />
+        <div className={styles.sheen} />
+        <div className={styles.overlay} />
+      </div>
+
       <div className={styles.border} />
 
       <div className={styles.content}>
@@ -123,26 +227,16 @@ export default function ReflectiveProfileCard({
           <Activity className={styles.statusIcon} size={20} />
         </div>
 
-        <div className={styles.body}>
-          <div>
-            <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/16">
-              <User size={22} />
-            </div>
-            <h2 className={styles.userName}>HACKPORT USER</h2>
-            <p className={styles.userRole}>PRODUCT BUILDER · DUMMY LOGIN PROFILE</p>
-          </div>
+        <div className={styles.divider} />
 
-          <div className={styles.metaGrid}>
-            <div className={styles.metaItem}>
-              <span className={styles.label}>Preferred Stack</span>
-              <span className={styles.value}>Next.js, TypeScript, OpenAI</span>
-            </div>
-            <div className={styles.metaItem}>
-              <span className={styles.label}>Team Style</span>
-              <span className={styles.value}>Fast Feedback</span>
-            </div>
+        <div className={styles.body}>
+          <div className={styles.identityBlock}>
+            <h2 className={styles.userName}>HACKPORT USER</h2>
+            <p className={styles.userRole}>PRODUCT BUILDER</p>
           </div>
         </div>
+
+        <div className={styles.divider} />
 
         <div className={styles.footer}>
           <div>

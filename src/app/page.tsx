@@ -31,20 +31,20 @@ const valueCards = [
 
 export default function HomePage() {
   return (
-    <div className="relative overflow-hidden">
-      <section className="relative isolate overflow-hidden">
-        <Grainient
-          className="fixed inset-0 -z-10"
-          color1="#b89eff"
-          color2="#5227FF"
-          color3="#B19EEF"
-          grainAnimated={false}
-          grainAmount={0.1}
-          timeSpeed={0.25}
-          warpStrength={1}
-          zoom={0.9}
-        />
-        <div className="container-shell relative py-20 sm:py-28">
+    <div className="relative isolate overflow-hidden">
+      <Grainient
+        className="pointer-events-none fixed inset-0 z-0"
+        color1="#b89eff"
+        color2="#5227FF"
+        color3="#B19EEF"
+        grainAnimated={false}
+        grainAmount={0.1}
+        timeSpeed={0.25}
+        warpStrength={1}
+        zoom={0.9}
+      />
+      <section className="relative z-10 overflow-hidden">
+        <div className="container-shell relative flex min-h-[100svh] flex-col justify-center py-20 sm:py-28">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)]">
             <div>
               <AnimatedText className="max-w-4xl font-display text-5xl font-semibold leading-[1.14] tracking-tight text-balance sm:text-6xl lg:text-7xl">
@@ -69,29 +69,39 @@ export default function HomePage() {
                     팀 찾기
                   </Button>
                 </Link>
+                <Link href="/rankings">
+                  <Button size="lg" variant="secondary">
+                    랭킹 보기
+                  </Button>
+                </Link>
               </div>
             </div>
-          </div>
-
-          <div className="mt-20 grid gap-5 lg:grid-cols-4">
-            {valueCards.map((item, index) => (
-              <FadeIn key={item.title} delay={index * 0.05}>
-                <div className="surface-tint h-full rounded-[32px] border border-white/50 p-6 backdrop-blur-xl">
-                  <item.icon className="h-7 w-7 text-brand-strong" />
-                  <h3 className="mt-5 font-display text-2xl font-semibold">{item.title}</h3>
-                  <p className="mt-3 text-sm leading-6 text-muted">{item.body}</p>
-                </div>
-              </FadeIn>
-            ))}
           </div>
         </div>
       </section>
 
-      <section className="container-shell py-20">
+      <section className="container-shell relative z-10 py-20">
+        <div className="grid gap-5 lg:grid-cols-4">
+          {valueCards.map((item, index) => (
+            <FadeIn key={item.title} delay={index * 0.05}>
+              <div className="surface-tint h-full rounded-[32px] border border-white/50 p-6 backdrop-blur-xl">
+                <item.icon className="h-7 w-7 text-brand-strong" />
+                <h3 className="mt-5 font-display text-2xl font-semibold text-black">{item.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-black/80">{item.body}</p>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+      </section>
+
+      <section className="container-shell relative z-10 py-20">
         <SectionHeading
           eyebrow="Journey"
           title="심사에서 바로 보여줄 수 있는 연결된 UX"
           description="탐색, 팀 구성, 제출, 결과 확인이 서로 끊기지 않도록 화면과 상태를 연결했습니다."
+          eyebrowClassName="text-black/60"
+          titleClassName="text-black"
+          descriptionClassName="text-black/75"
         />
         <div className="mt-10 grid gap-5 lg:grid-cols-3">
           {[
@@ -104,7 +114,7 @@ export default function HomePage() {
                 <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-soft font-semibold text-brand-strong">
                   0{index + 1}
                 </div>
-                <p className="text-pretty text-base leading-7">{item}</p>
+                <p className="text-pretty text-base leading-7 text-black/80">{item}</p>
               </div>
             </FadeIn>
           ))}

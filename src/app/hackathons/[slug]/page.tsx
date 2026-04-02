@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { CopilotPanel } from "@/components/site/copilot-panel";
+import { HackathonTeamsPanel } from "@/components/site/hackathon-teams-panel";
 import { LeaderboardTable } from "@/components/site/leaderboard-table";
 import { SubmissionPanel } from "@/components/site/submission-panel";
 import { getHackathonBySlug } from "@/lib/hackathons";
@@ -82,6 +83,21 @@ export default async function HackathonDetailPage({
               ))}
             </div>
           </Card>
+
+          <Card className="bg-white">
+            <CardTitle>Prize</CardTitle>
+            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {hackathon.prizes.map((item) => (
+                <div key={item.title} className="rounded-[24px] border border-border bg-[#fffaf2] p-5">
+                  <p className="text-sm text-muted">{item.title}</p>
+                  <p className="mt-2 font-display text-2xl font-semibold">{item.reward}</p>
+                  <CardDescription className="mt-3">{item.description}</CardDescription>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <HackathonTeamsPanel hackathon={hackathon} />
 
           <SubmissionPanel hackathon={hackathon} />
           <LeaderboardTable hackathon={hackathon} />

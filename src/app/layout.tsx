@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Plus_Jakarta_Sans } from "next/font/google";
+import { Space_Grotesk, Plus_Jakarta_Sans, Geist } from "next/font/google";
 import "./globals.css";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const display = Space_Grotesk({
   variable: "--font-display",
@@ -28,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={`${display.variable} ${body.variable} h-full scroll-smooth antialiased`}
+      className={cn("h-full", "scroll-smooth", "antialiased", display.variable, body.variable, "font-sans", geist.variable)}
     >
       <body className="min-h-full bg-background text-foreground">
         <div className="relative flex min-h-screen flex-col">

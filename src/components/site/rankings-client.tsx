@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { globalRankings } from "@/lib/data/hackathons";
 
 export function RankingsClient() {
-  const [period, setPeriod] = useState<"weekly" | "all">("weekly");
+  const [period, setPeriod] = useState<"7d" | "30d" | "all">("7d");
   const rows = useMemo(() => globalRankings.filter((item) => item.period === period), [period]);
 
   return (
@@ -15,50 +15,66 @@ export function RankingsClient() {
       <Card className="glass-panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <CardTitle>Global Rankings</CardTitle>
-          <CardDescription className="mt-2">기간별 성과, 배지, 상승 추세를 함께 확인합니다.</CardDescription>
+          <CardDescription className="mt-2">7일, 30일, 전체 기간 기준으로 Rank / Nickname / Points를 비교합니다.</CardDescription>
         </div>
         <div className="flex gap-2">
-          {(["weekly", "all"] as const).map((item) => (
+          {(["7d", "30d", "all"] as const).map((item) => (
             <button
               key={item}
               className={`rounded-full px-4 py-3 text-sm font-medium ${period === item ? "bg-foreground text-white" : "bg-white text-muted"}`}
               onClick={() => setPeriod(item)}
               type="button"
             >
-              {item === "weekly" ? "최근 기록" : "전체 기록"}
+              {item === "7d" ? "최근 7일" : item === "30d" ? "최근 30일" : "전체"}
             </button>
           ))}
         </div>
       </Card>
 
-      <div className="grid gap-4">
-        {rows.map((row, index) => (
-          <Card key={`${row.nickname}-${row.period}`} className="bg-white">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <Badge>#{index + 1}</Badge>
-                  {row.badges.map((badge) => (
-                    <Badge key={badge}>{badge}</Badge>
-                  ))}
-                </div>
-                <CardTitle>{row.nickname}</CardTitle>
-                <CardDescription className="mt-2">{row.points} pts</CardDescription>
-              </div>
-              <div className="flex flex-wrap gap-3 text-sm">
-                <div className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-4 py-2 text-brand-strong">
-                  <Medal className="h-4 w-4" />
-                  배지 {row.badges.length}개
-                </div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-[#edf6f3] px-4 py-2 text-teal">
-                  {row.trend === "hot" ? <Flame className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />}
-                  {row.trend}
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+      <Card className="overflow-hidden bg-white p-0">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left text-sm">
+            <thead className="bg-[#f7f3eb] text-muted">
+              <tr>
+                <th className="px-6 py-4 font-medium">Rank</th>
+                <th className="px-6 py-4 font-medium">Nickname</th>
+                <th className="px-6 py-4 font-medium">Points</th>
+                <th className="px-6 py-4 font-medium">Badges</th>
+                <th className="px-6 py-4 font-medium">Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, index) => (
+                <tr key={`${row.nickname}-${row.period}`} className="border-t border-border align-top">
+                  <td className="px-6 py-5">
+                    <Badge>#{index + 1}</Badge>
+                  </td>
+                  <td className="px-6 py-5">
+                    <CardTitle className="text-lg">{row.nickname}</CardTitle>
+                  </td>
+                  <td className="px-6 py-5 font-semibold">{row.points}</td>
+                  <td className="px-6 py-5">
+                    <div className="flex flex-wrap gap-2">
+                      {row.badges.map((badge) => (
+                        <Badge key={badge} className="bg-brand-soft text-brand-strong">
+                          <Medal className="mr-1 h-3 w-3" />
+                          {badge}
+                        </Badge>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-[#edf6f3] px-4 py-2 text-teal">
+                      {row.trend === "hot" ? <Flame className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />}
+                      {row.trend}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
 }
