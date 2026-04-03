@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { CampClient } from "@/components/site/camp-client";
 import { SectionHeading } from "@/components/ui/section-heading";
 
@@ -10,7 +11,9 @@ export default function CampPage() {
         description="해커톤과 입문자 환영 조건으로 팀을 골라보고, 직접 모집글을 올려 팀 구성을 시작하세요."
       />
       <div className="mt-10">
-        <CampClient />
+        <Suspense>
+          <CampClient />
+        </Suspense>
       </div>
     </div>
   );

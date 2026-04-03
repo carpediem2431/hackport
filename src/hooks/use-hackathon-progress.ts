@@ -12,15 +12,12 @@ export function useHackathonProgress(slug: string) {
 
   const progress = useMemo(() => value[slug], [slug, value]);
 
-  const updateProgress = useCallback(
-    (next: UserProgress) => {
-      setValue((previous) => ({
-        ...previous,
-        [slug]: next,
-      }));
-    },
-    [setValue, slug],
-  );
+  const updateProgress = useCallback((next: UserProgress) => {
+    setValue((prev) => ({
+      ...prev,
+      [slug]: next,
+    }));
+  }, [slug, setValue]);
 
   return { progress, updateProgress, ready };
 }

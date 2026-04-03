@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import './ReflectiveCard.css';
 import { Fingerprint, Activity, Lock } from 'lucide-react';
 
@@ -43,6 +43,7 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
   user,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const filterId = useId();
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -113,14 +114,15 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
     '--roughness': roughness,
     '--overlay-color': overlayColor,
     '--text-color': color,
-    '--saturation': saturation
+    '--saturation': saturation,
+    '--svg-filter': `url(#${filterId})`,
   } as React.CSSProperties;
 
   return (
     <div className={`reflective-card-container ${className}`} style={{ ...style, ...cssVariables }}>
       <svg className="reflective-svg-filters" aria-hidden="true">
         <defs>
-          <filter id="metallic-displacement" x="-20%" y="-20%" width="140%" height="140%">
+          <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%">
             <feTurbulence type="turbulence" baseFrequency={baseFrequency} numOctaves="2" result="noise" />
             <feColorMatrix in="noise" type="luminanceToAlpha" result="noiseAlpha" />
             <feDisplacementMap
