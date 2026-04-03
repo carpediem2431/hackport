@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AppDialog } from "@/components/ui/dialog";
+import { SectionHeading } from "@/components/ui/section-heading";
 import { StateCard } from "@/components/ui/state-card";
 import { useLocalStorageState } from "@/hooks/use-local-storage-state";
 import { PROFILE_ROLE_OPTIONS, PROFILE_TECH_STACK_OPTIONS } from "@/lib/profile-options";
@@ -49,6 +50,7 @@ export function CampClient() {
   const [teamFormError, setTeamFormError] = useState<string | null>(null);
   const [roleSelectValue, setRoleSelectValue] = useState("");
   const [techStackSelectValue, setTechStackSelectValue] = useState("");
+  const [showFormDialog, setShowFormDialog] = useState(false);
 
   const teams = storedTeams.length > 0 ? storedTeams : demoTeamPosts;
   const filteredTeams = useMemo(() => {
@@ -77,6 +79,19 @@ export function CampClient() {
 
   const selectedMessageTeam = teams.find((team) => team.id === messageTeamId);
 
+  const resetTeamForm = () => {
+    setTeamForm(emptyTeamForm);
+    setEditingId(null);
+    setRoleSelectValue("");
+    setTechStackSelectValue("");
+    setTeamFormError(null);
+  };
+
+  const openCreateDialog = () => {
+    resetTeamForm();
+    setShowFormDialog(true);
+  };
+
   if (!profileReady || !teamsReady || !invitesReady) {
     return <StateCard loading title="팀 매칭 데이터를 불러오는 중입니다" description="프로필, 모집글, 메시지, 초대 상태를 로컬 저장소와 동기화하고 있습니다." />;
   }
@@ -104,9 +119,8 @@ export function CampClient() {
 
     const nextTeams = editingId ? teams.map((team) => (team.id === editingId ? nextTeam : team)) : [nextTeam, ...teams];
     setStoredTeams(nextTeams);
-    setTeamForm(emptyTeamForm);
-    setEditingId(null);
-    setTeamFormError(null);
+    resetTeamForm();
+    setShowFormDialog(false);
   };
 
   const toggleTeamOpen = (teamId: string) => {
@@ -131,6 +145,7 @@ export function CampClient() {
       collaborationStyle: team.collaborationStyle,
       beginnerFriendly: team.beginnerFriendly,
     });
+    setShowFormDialog(true);
   };
 
   const addTeamFormItem = (field: "lookingFor" | "techStacks", value: string) => {
@@ -187,17 +202,28 @@ export function CampClient() {
 
   return (
     <div className="space-y-6">
-        <Card className="bg-white">
+      <SectionHeading
+        eyebrow="팀 매칭"
+        title="캠프"
+        description="해커톤과 입문자 환영 조건으로 팀을 골라보고, 직접 모집글을 올려 팀 구성을 시작하세요."
+        action={
+          <Button className="shrink-0" onClick={openCreateDialog}>
+            <Plus className="mr-2 h-4 w-4" />새 모집글
+          </Button>
+        }
+      />
+
+      <Card className="bg-white">
           <div className="space-y-4">
             <div>
               <CardTitle>모집 중인 팀</CardTitle>
               <CardDescription className="mt-2">해커톤과 입문자 환영 여부로 팀을 빠르게 좁히고, 같은 로컬 데이터로 메시지와 모집 상태를 관리합니다.</CardDescription>
             </div>
             <div className="flex flex-col gap-3">
-              <div className="flex flex-wrap items-center gap-2 rounded-[24px] bg-[#f8f3eb] p-2">
+              <div className="flex flex-wrap items-center gap-2 rounded-[24px] bg-brand-soft/15 p-2">
                 <button
                   type="button"
-                  className={`rounded-full px-4 py-2.5 text-sm font-medium transition ${selectedHackathon === "all" ? "bg-foreground text-white shadow-sm" : "bg-white/70 text-muted hover:bg-white"}`}
+                  className={`rounded-full px-4 py-2.5 text-sm font-medium transition ${selectedHackathon === "all" ? "bg-brand text-white shadow-sm" : "bg-white/70 text-muted hover:bg-white"}`}
                   onClick={() => setSelectedHackathon("all")}
                 >
                   전체 해커톤
@@ -293,101 +319,110 @@ export function CampClient() {
           </div>
         </Card>
 
-      <Card>
-          <CardTitle>{editingId ? "모집글 수정" : "새 모집글 작성"}</CardTitle>
-          <div className="mt-6 grid gap-4">
-            {teamFormError ? <div className="rounded-[20px] border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">{teamFormError}</div> : null}
-            <div className="grid gap-2">
-              <p className="text-sm font-medium">팀 이름</p>
-              <Input placeholder="예: AI 빌더스" value={teamForm.teamName} onChange={(event) => setTeamForm({ ...teamForm, teamName: event.target.value })} />
-            </div>
-            <div className="grid gap-2">
-              <p className="text-sm font-medium">해커톤 슬러그</p>
-              <Input placeholder="예: ai-build-sprint-seoul" value={teamForm.hackathonSlug} onChange={(event) => setTeamForm({ ...teamForm, hackathonSlug: event.target.value })} />
-            </div>
-            <div className="grid gap-2">
-              <p className="text-sm font-medium">팀 소개</p>
-              <Textarea placeholder="무엇을 만들고 있는지, 어떤 팀인지 소개해 주세요" value={teamForm.intro} onChange={(event) => setTeamForm({ ...teamForm, intro: event.target.value })} />
-            </div>
-            <div className="grid gap-2">
-              <p className="text-sm font-medium">찾는 역할</p>
-              <Select
-                value={roleSelectValue || undefined}
-                onValueChange={(value) => {
-                  addTeamFormItem("lookingFor", value);
-                  setRoleSelectValue("");
-                }}
-              >
-                <SelectTrigger className="h-11 w-full rounded-2xl px-4">
-                  <SelectValue placeholder="역할 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roleOptions.map((role) => (
-                    <SelectItem key={role} value={role}>
-                      {role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex flex-wrap gap-2">
-                {selectedRoles.length > 0 ? selectedRoles.map((role) => (
-                  <button
-                    key={role}
-                    type="button"
-                    className="rounded-full border border-border bg-[#f8f3eb] px-3 py-1.5 text-sm text-foreground transition hover:border-brand/40 hover:bg-brand-soft/30"
-                    onClick={() => removeTeamFormItem("lookingFor", role)}
-                  >
-                    {role} ×
-                  </button>
-                )) : <p className="text-sm text-muted">선택한 역할이 여기에 표시됩니다.</p>}
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <p className="text-sm font-medium">기술 스택</p>
-              <Select
-                value={techStackSelectValue || undefined}
-                onValueChange={(value) => {
-                  addTeamFormItem("techStacks", value);
-                  setTechStackSelectValue("");
-                }}
-              >
-                <SelectTrigger className="h-11 w-full rounded-2xl px-4">
-                  <SelectValue placeholder="기술 스택 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  {techStackOptions.map((stack) => (
-                    <SelectItem key={stack} value={stack}>
-                      {stack}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex flex-wrap gap-2">
-                {selectedTechStacks.length > 0 ? selectedTechStacks.map((stack) => (
-                  <button
-                    key={stack}
-                    type="button"
-                    className="rounded-full border border-border bg-[#f8f3eb] px-3 py-1.5 text-sm text-foreground transition hover:border-brand/40 hover:bg-brand-soft/30"
-                    onClick={() => removeTeamFormItem("techStacks", stack)}
-                  >
-                    {stack} ×
-                  </button>
-                )) : <p className="text-sm text-muted">선택한 기술 스택이 여기에 표시됩니다.</p>}
-              </div>
-            </div>
-            <button
-              type="button"
-              className={`rounded-2xl border px-4 py-3 text-left text-sm ${teamForm.isOpen ? "border-brand bg-brand-soft/40" : "border-border bg-white"}`}
-              onClick={() => setTeamForm({ ...teamForm, isOpen: !teamForm.isOpen })}
-            >
-              모집 상태: {teamForm.isOpen ? "모집 중" : "모집 마감"}
-            </button>
-            <Button onClick={upsertTeam}>
-              {editingId ? <Save className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
-              {editingId ? "모집글 저장" : "모집글 등록"}
-            </Button>
+      <AppDialog
+        open={showFormDialog}
+        onOpenChange={(open) => {
+          if (!open) {
+            resetTeamForm();
+          }
+          setShowFormDialog(open);
+        }}
+        title={editingId ? "모집글 수정" : "새 모집글"}
+        description="팀 이름, 소개, 역할, 기술 스택을 입력해 모집글을 저장하세요."
+      >
+        <div className="grid gap-4">
+          {teamFormError ? <div className="rounded-[20px] border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-300">{teamFormError}</div> : null}
+          <div className="grid gap-2">
+            <p className="text-sm font-medium text-white/80">팀 이름</p>
+            <Input placeholder="예: AI 빌더스" className="border-white/15 bg-white/10 text-white placeholder:text-white/40" value={teamForm.teamName} onChange={(event) => setTeamForm({ ...teamForm, teamName: event.target.value })} />
           </div>
-      </Card>
+          <div className="grid gap-2">
+            <p className="text-sm font-medium text-white/80">해커톤 슬러그</p>
+            <Input placeholder="예: ai-build-sprint-seoul" className="border-white/15 bg-white/10 text-white placeholder:text-white/40" value={teamForm.hackathonSlug} onChange={(event) => setTeamForm({ ...teamForm, hackathonSlug: event.target.value })} />
+          </div>
+          <div className="grid gap-2">
+            <p className="text-sm font-medium text-white/80">팀 소개</p>
+            <Textarea placeholder="무엇을 만들고 있는지, 어떤 팀인지 소개해 주세요" className="border-white/15 bg-white/10 text-white placeholder:text-white/40" value={teamForm.intro} onChange={(event) => setTeamForm({ ...teamForm, intro: event.target.value })} />
+          </div>
+          <div className="grid gap-2">
+            <p className="text-sm font-medium text-white/80">찾는 역할</p>
+            <Select
+              value={roleSelectValue || undefined}
+              onValueChange={(value) => {
+                addTeamFormItem("lookingFor", value);
+                setRoleSelectValue("");
+              }}
+            >
+              <SelectTrigger className="h-11 w-full rounded-2xl border-white/15 bg-white/10 px-4 text-white">
+                <SelectValue placeholder="역할 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                {roleOptions.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex flex-wrap gap-2">
+              {selectedRoles.length > 0 ? selectedRoles.map((role) => (
+                <button
+                  key={role}
+                  type="button"
+                  className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-sm text-white/80 transition hover:border-white/30 hover:bg-white/15"
+                  onClick={() => removeTeamFormItem("lookingFor", role)}
+                >
+                  {role} ×
+                </button>
+              )) : <p className="text-sm text-white/40">선택한 역할이 여기에 표시됩니다.</p>}
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <p className="text-sm font-medium text-white/80">기술 스택</p>
+            <Select
+              value={techStackSelectValue || undefined}
+              onValueChange={(value) => {
+                addTeamFormItem("techStacks", value);
+                setTechStackSelectValue("");
+              }}
+            >
+              <SelectTrigger className="h-11 w-full rounded-2xl border-white/15 bg-white/10 px-4 text-white">
+                <SelectValue placeholder="기술 스택 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                {techStackOptions.map((stack) => (
+                  <SelectItem key={stack} value={stack}>
+                    {stack}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex flex-wrap gap-2">
+              {selectedTechStacks.length > 0 ? selectedTechStacks.map((stack) => (
+                <button
+                  key={stack}
+                  type="button"
+                  className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-sm text-white/80 transition hover:border-white/30 hover:bg-white/15"
+                  onClick={() => removeTeamFormItem("techStacks", stack)}
+                >
+                  {stack} ×
+                </button>
+              )) : <p className="text-sm text-white/40">선택한 기술 스택이 여기에 표시됩니다.</p>}
+            </div>
+          </div>
+          <button
+            type="button"
+            className={`rounded-2xl border px-4 py-3 text-left text-sm ${teamForm.isOpen ? "border-brand bg-brand-soft/40 text-white" : "border-white/15 bg-white/10 text-white/60"}`}
+            onClick={() => setTeamForm({ ...teamForm, isOpen: !teamForm.isOpen })}
+          >
+            모집 상태: {teamForm.isOpen ? "모집 중" : "모집 마감"}
+          </button>
+          <Button onClick={upsertTeam}>
+            {editingId ? <Save className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
+            {editingId ? "모집글 저장" : "모집글 등록"}
+          </Button>
+        </div>
+      </AppDialog>
 
       <AppDialog
         open={Boolean(selectedMessageTeam)}
