@@ -37,7 +37,7 @@ export function CopilotPanel({ hackathon }: { hackathon: Hackathon }) {
             <CardTitle className="mt-3 text-white">준비도 {state.readiness}%</CardTitle>
             <CardDescription className="mt-2 text-white/68">{state.highlight}</CardDescription>
           </div>
-          <Badge className="border-white/10 bg-white/10 text-white">D-{Math.max(state.remainingDays, 0)}</Badge>
+          <Badge className="whitespace-nowrap border-white/10 bg-white/10 text-white">D-{Math.max(state.remainingDays, 0)}</Badge>
         </div>
 
         <Progress value={state.readiness} className="bg-white/10" />

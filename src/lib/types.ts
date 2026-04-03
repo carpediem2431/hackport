@@ -82,7 +82,6 @@ export type TeamPost = {
   intro: string;
   lookingFor: string[];
   techStacks: string[];
-  contactUrl: string;
   isOpen: boolean;
   collaborationStyle: string;
   beginnerFriendly: boolean;

@@ -100,7 +100,7 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
                     <div className="mb-3 flex flex-wrap gap-2">
                       <Badge>{team.isOpen ? "모집중" : "마감"}</Badge>
                       {team.ownerId === "local-user" ? <Badge className="bg-brand-soft text-brand-strong">내가 관리 중</Badge> : null}
-                      {team.beginnerFriendly ? <Badge>초보자 환영</Badge> : null}
+                      {team.beginnerFriendly ? <Badge>입문자 환영</Badge> : null}
                     </div>
                     <h3 className="font-display text-xl font-semibold">{team.teamName}</h3>
                     <p className="mt-2 text-sm leading-6 text-muted">{team.intro}</p>
@@ -116,15 +116,11 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
                     </div>
                   </div>
 
-                  <div className="min-w-72 space-y-3">
-                    <a href={team.contactUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-                      연락 링크 열기
-                      <ArrowUpRight className="h-4 w-4" />
-                    </a>
-
+                  <div>
                     {team.ownerId !== "local-user" && team.isOpen ? (
                       <Button
                         size="sm"
+                        className="whitespace-nowrap"
                         onClick={() => {
                           setSelectedTeamId(team.id);
                           setRequestOpen(true);
@@ -133,39 +129,39 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
                         참여 요청 보내기
                       </Button>
                     ) : null}
-
-                    {team.ownerId === "local-user" ? (
-                      <div className="rounded-[20px] border border-border bg-white p-4">
-                        <p className="text-sm font-medium">도착한 요청</p>
-                        <div className="mt-3 grid gap-3 text-sm">
-                          {teamInvites.length === 0 ? (
-                            <p className="text-muted">아직 도착한 요청이 없습니다.</p>
-                          ) : (
-                            teamInvites.map((invite) => (
-                              <div key={invite.id} className="rounded-[18px] bg-[#f8f3eb] p-3">
-                                <p className="font-medium">{invite.senderName}</p>
-                                <p className="mt-1 text-muted">{invite.note}</p>
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                  <Badge>{inviteStatusLabelMap[invite.status]}</Badge>
-                                  {invite.status === "pending" ? (
-                                    <>
-                                      <Button size="sm" variant="secondary" onClick={() => handleInviteStatus(invite.id, "accepted")}>
-                                        <Check className="mr-2 h-4 w-4" />수락
-                                      </Button>
-                                      <Button size="sm" variant="outline" onClick={() => handleInviteStatus(invite.id, "rejected")}>
-                                        <X className="mr-2 h-4 w-4" />거절
-                                      </Button>
-                                    </>
-                                  ) : null}
-                                </div>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    ) : null}
                   </div>
                 </div>
+
+                {team.ownerId === "local-user" ? (
+                  <div className="mt-4 rounded-[20px] border border-border bg-white p-4">
+                    <p className="text-sm font-medium">도착한 요청</p>
+                    <div className="mt-3 grid gap-3 text-sm">
+                      {teamInvites.length === 0 ? (
+                        <p className="text-muted">아직 도착한 요청이 없습니다.</p>
+                      ) : (
+                        teamInvites.map((invite) => (
+                          <div key={invite.id} className="rounded-[18px] bg-[#f8f3eb] p-3">
+                            <p className="font-medium">{invite.senderName}</p>
+                            <p className="mt-1 text-muted">{invite.note}</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <Badge>{inviteStatusLabelMap[invite.status]}</Badge>
+                              {invite.status === "pending" ? (
+                                <>
+                                  <Button size="sm" variant="secondary" onClick={() => handleInviteStatus(invite.id, "accepted")}>
+                                    <Check className="mr-2 h-4 w-4" />수락
+                                  </Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleInviteStatus(invite.id, "rejected")}>
+                                    <X className="mr-2 h-4 w-4" />거절
+                                  </Button>
+                                </>
+                              ) : null}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             );
           })
@@ -198,7 +194,7 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
         description="메모를 남기면 로컬 저장소에 요청이 기록되고 해당 팀 카드에서 상태를 확인할 수 있습니다."
       >
         <div className="space-y-4">
-          <Textarea placeholder="어떤 역할로 기여할 수 있는지 간단히 적어 주세요." value={requestNote} onChange={(event) => setRequestNote(event.target.value)} />
+          <Textarea className="text-gray-900" placeholder="어떤 역할로 기여할 수 있는지 간단히 적어 주세요." value={requestNote} onChange={(event) => setRequestNote(event.target.value)} />
           <div className="flex flex-wrap gap-3">
             <Button onClick={handleSendRequest}>요청 보내기</Button>
             <Button variant="secondary" onClick={() => setRequestOpen(false)}>

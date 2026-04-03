@@ -22,11 +22,6 @@ export function getTeamFitScore(profile: CampProfile, team: TeamPost) {
     reasons.push("협업 스타일이 잘 맞습니다");
   }
 
-  if (profile.beginnerFriendly && team.beginnerFriendly) {
-    score += 10;
-    reasons.push("초보자 친화 팀입니다");
-  }
-
   if (profile.level === "advanced" && !team.beginnerFriendly) {
     score += 8;
     reasons.push("빠른 실행형 팀 분위기와 맞습니다");

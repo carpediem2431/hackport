@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowUpRight, HeartHandshake, MessageSquare, Pencil, Plus, Save, Send, UsersRound } from "lucide-react";
+import { HeartHandshake, MessageSquare, Pencil, Plus, Save, Send, UsersRound } from "lucide-react";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,7 +24,6 @@ const emptyTeamForm = {
   intro: "",
   lookingFor: "",
   techStacks: "",
-  contactUrl: "",
   isOpen: true,
   collaborationStyle: "fast-feedback",
   beginnerFriendly: true,
@@ -83,19 +82,8 @@ export function CampClient() {
   }
 
   const upsertTeam = () => {
-    if (!teamForm.teamName || !teamForm.intro || !teamForm.contactUrl) {
-      setTeamFormError("teamName, intro, contactUrl은 모두 입력해야 합니다.");
-      return;
-    }
-
-    try {
-      const url = new URL(teamForm.contactUrl);
-      if (!["http:", "https:"].includes(url.protocol)) {
-        setTeamFormError("contactUrl은 http 또는 https 링크여야 합니다.");
-        return;
-      }
-    } catch {
-      setTeamFormError("contactUrl 형식이 올바르지 않습니다.");
+    if (!teamForm.teamName || !teamForm.intro) {
+      setTeamFormError("teamName, intro는 모두 입력해야 합니다.");
       return;
     }
 
@@ -106,7 +94,6 @@ export function CampClient() {
       intro: teamForm.intro,
       lookingFor: selectedRoles,
       techStacks: selectedTechStacks,
-      contactUrl: teamForm.contactUrl,
       isOpen: teamForm.isOpen,
       collaborationStyle: teamForm.collaborationStyle,
       beginnerFriendly: teamForm.beginnerFriendly,
@@ -140,7 +127,6 @@ export function CampClient() {
       intro: team.intro,
       lookingFor: team.lookingFor.join(", "),
       techStacks: team.techStacks.join(", "),
-      contactUrl: team.contactUrl,
       isOpen: team.isOpen,
       collaborationStyle: team.collaborationStyle,
       beginnerFriendly: team.beginnerFriendly,
@@ -184,7 +170,7 @@ export function CampClient() {
       const autoReply: TeamMessage = {
         id: `msg-${Date.now() + 1}`,
         sender: "team",
-        body: `${team.teamName} 팀이 메시지를 확인했습니다. 연락 링크 또는 초대 상태를 함께 확인해 주세요.`,
+        body: `${team.teamName} 팀이 메시지를 확인했습니다. 초대 상태를 함께 확인해 주세요.`,
         createdAt: new Date().toISOString(),
       };
 
@@ -205,7 +191,7 @@ export function CampClient() {
           <div className="space-y-4">
             <div>
               <CardTitle>모집 중인 팀</CardTitle>
-              <CardDescription className="mt-2">해커톤과 입문자 친화 여부로 팀을 빠르게 좁히고, 같은 로컬 데이터로 메시지와 모집 상태를 관리합니다.</CardDescription>
+              <CardDescription className="mt-2">해커톤과 입문자 환영 여부로 팀을 빠르게 좁히고, 같은 로컬 데이터로 메시지와 모집 상태를 관리합니다.</CardDescription>
             </div>
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2 rounded-[24px] bg-[#f8f3eb] p-2">
@@ -235,9 +221,9 @@ export function CampClient() {
               >
                 <span className={`h-2.5 w-2.5 rounded-full ${showBeginnerFriendlyOnly ? "bg-brand" : "bg-border"}`} />
                 <span className="flex flex-col">
-                  <span>입문자 친화 팀만</span>
+                  <span>입문자 환영 팀만</span>
                   <span className={`text-xs ${showBeginnerFriendlyOnly ? "text-foreground/70" : "text-muted"}`}>
-                    {showBeginnerFriendlyOnly ? "초보자 환영 팀만 보는 중" : "토글해서 초보자 환영 팀만 보기"}
+                    {showBeginnerFriendlyOnly ? "입문자 환영 팀만 보는 중" : "토글해서 입문자 환영 팀만 보기"}
                   </span>
                 </span>
               </button>
@@ -255,8 +241,8 @@ export function CampClient() {
                     <div className="max-w-2xl">
                       <div className="mb-3 flex flex-wrap gap-2">
                         <Badge>{hackathons.find((item) => item.slug === team.hackathonSlug)?.title ?? team.hackathonSlug}</Badge>
-                        <Badge>{team.isOpen ? "Recruiting" : "Closed"}</Badge>
-                        {team.beginnerFriendly ? <Badge>Beginner Friendly</Badge> : null}
+                        <Badge>{team.isOpen ? "모집 중" : "모집 마감"}</Badge>
+                        {team.beginnerFriendly ? <Badge>입문자 환영</Badge> : null}
                         {team.ownerId === "local-user" ? <Badge className="bg-brand-soft text-brand-strong">내 모집글</Badge> : null}
                       </div>
                       <h3 className="font-display text-xl font-semibold">{team.teamName}</h3>
@@ -284,10 +270,6 @@ export function CampClient() {
                         ))}
                       </div>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        <a className="inline-flex items-center gap-2 text-sm font-semibold text-foreground" href={team.contactUrl} target="_blank" rel="noreferrer">
-                          연락 링크
-                          <ArrowUpRight className="h-4 w-4" />
-                        </a>
                         <Button size="sm" variant="outline" onClick={() => setMessageTeamId(team.id)}>
                           <MessageSquare className="mr-2 h-4 w-4" />메시지
                         </Button>
@@ -299,7 +281,7 @@ export function CampClient() {
                             <Button size="sm" variant="outline" onClick={() => toggleTeamOpen(team.id)}>
                               <UsersRound className="mr-2 h-4 w-4" />{team.isOpen ? "모집 마감" : "다시 모집"}
                             </Button>
-                            <Badge>{inviteCount} pending invite</Badge>
+                            <Badge>초대 대기 {inviteCount}건</Badge>
                           </>
                         ) : null}
                       </div>
@@ -393,10 +375,6 @@ export function CampClient() {
                 )) : <p className="text-sm text-muted">선택한 기술 스택이 여기에 표시됩니다.</p>}
               </div>
             </div>
-            <div className="grid gap-2">
-              <p className="text-sm font-medium">연락 링크</p>
-              <Input placeholder="예: https://open.kakao.com/..." value={teamForm.contactUrl} onChange={(event) => setTeamForm({ ...teamForm, contactUrl: event.target.value })} />
-            </div>
             <button
               type="button"
               className={`rounded-2xl border px-4 py-3 text-left text-sm ${teamForm.isOpen ? "border-brand bg-brand-soft/40" : "border-border bg-white"}`}
@@ -424,14 +402,14 @@ export function CampClient() {
       >
         <div className="space-y-4">
           <div className="max-h-72 space-y-3 overflow-y-auto rounded-[24px] border border-white/10 bg-white/5 p-4 text-sm text-white/80">
-            {selectedMessageTeam?.messages.map((message) => (
+            {selectedMessageTeam?.messages.length ? selectedMessageTeam.messages.map((message) => (
               <div key={message.id} className={`rounded-[18px] px-4 py-3 ${message.sender === "me" ? "bg-brand/25" : "bg-white/10"}`}>
                 <p className="text-xs uppercase tracking-[0.18em] text-white/45">{message.sender === "me" ? "me" : "team"}</p>
-                <p className="mt-2 leading-6">{message.body}</p>
+                <p className="mt-2 leading-6 text-white/90">{message.body}</p>
               </div>
-            ))}
+            )) : <p className="py-6 text-center text-white/40">아직 메시지가 없습니다</p>}
           </div>
-          <Textarea placeholder="메시지를 입력하세요" value={messageText} onChange={(event) => setMessageText(event.target.value)} />
+          <Textarea placeholder="메시지를 입력하세요" className="border-white/15 bg-white/10 text-white placeholder:text-white/40" value={messageText} onChange={(event) => setMessageText(event.target.value)} />
           <div className="flex flex-wrap gap-3">
             <Button onClick={sendMessage}>
               <Send className="mr-2 h-4 w-4" />메시지 보내기

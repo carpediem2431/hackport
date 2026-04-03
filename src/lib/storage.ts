@@ -47,6 +47,12 @@ export function loadStorage<T>(key: string, fallback: T): T {
 
 export function saveStorage<T>(key: string, value: T) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(key, JSON.stringify(value));
+  const serialized = JSON.stringify(value);
+
+  if (window.localStorage.getItem(key) === serialized) {
+    return;
+  }
+
+  window.localStorage.setItem(key, serialized);
   window.dispatchEvent(new Event("storage-sync"));
 }

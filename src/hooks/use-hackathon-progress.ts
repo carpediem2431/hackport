@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useLocalStorageState } from "@/hooks/use-local-storage-state";
 import { storageKeys } from "@/lib/storage";
 import { UserProgress } from "@/lib/types";
@@ -12,12 +12,15 @@ export function useHackathonProgress(slug: string) {
 
   const progress = useMemo(() => value[slug], [slug, value]);
 
-  const updateProgress = (next: UserProgress) => {
-    setValue({
-      ...value,
-      [slug]: next,
-    });
-  };
+  const updateProgress = useCallback(
+    (next: UserProgress) => {
+      setValue((previous) => ({
+        ...previous,
+        [slug]: next,
+      }));
+    },
+    [setValue, slug],
+  );
 
   return { progress, updateProgress, ready };
 }
