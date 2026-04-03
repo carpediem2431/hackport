@@ -31,6 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
+      data-scroll-behavior="smooth"
       className={cn("h-full", "scroll-smooth", "antialiased", display.variable, body.variable, "font-sans", geist.variable)}
     >
       <body className="min-h-full bg-background text-foreground">

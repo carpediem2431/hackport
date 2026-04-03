@@ -4,6 +4,13 @@ import React, { useEffect, useRef } from 'react';
 import './ReflectiveCard.css';
 import { Fingerprint, Activity, Lock } from 'lucide-react';
 
+interface UserInfo {
+  nickname: string;
+  role: string;
+  level: string;
+  email: string;
+}
+
 interface ReflectiveCardProps {
   blurStrength?: number;
   color?: string;
@@ -17,6 +24,7 @@ interface ReflectiveCardProps {
   glassDistortion?: number;
   className?: string;
   style?: React.CSSProperties;
+  user?: UserInfo;
 }
 
 const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
@@ -31,7 +39,8 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
   grayscale = 1,
   glassDistortion = 0,
   className = '',
-  style = {}
+  style = {},
+  user,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -167,22 +176,22 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
         <div className="card-header">
           <div className="security-badge">
             <Lock size={14} className="security-icon" />
-            <span>SECURE ACCESS</span>
+            <span>보안 접근</span>
           </div>
           <Activity className="status-icon" size={20} />
         </div>
 
         <div className="card-body">
           <div className="user-info">
-            <h2 className="user-name">ALEXANDER DOE</h2>
-            <p className="user-role">SENIOR DEVELOPER</p>
+            <h2 className="user-name">{user?.nickname ?? '알 수 없음'}</h2>
+            <p className="user-role">{user?.role ?? '역할 없음'}</p>
           </div>
         </div>
 
         <div className="card-footer">
           <div className="id-section">
-            <span className="label">ID NUMBER</span>
-            <span className="value">8901-2345-6789</span>
+            <span className="label">이메일</span>
+            <span className="value">{user?.email ?? '-'}</span>
           </div>
           <div className="fingerprint-section">
             <Fingerprint size={32} className="fingerprint-icon" />

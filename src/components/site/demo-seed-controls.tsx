@@ -23,6 +23,7 @@ export function DemoSeedControls() {
         type="button"
         size="sm"
         variant="outline"
+        className="border-white/30 text-white/80 hover:bg-white/10 hover:text-white disabled:opacity-40"
         disabled={!ready}
         onClick={() => resetUserProgressOnly()}
       >

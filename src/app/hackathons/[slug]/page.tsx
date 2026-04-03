@@ -9,6 +9,12 @@ import { SubmissionPanel } from "@/components/site/submission-panel";
 import { getHackathonBySlug } from "@/lib/hackathons";
 import { formatDate } from "@/lib/utils";
 
+const statusLabelMap = {
+  upcoming: "예정",
+  live: "진행 중",
+  closed: "마감",
+} as const;
+
 export default async function HackathonDetailPage({
   params,
 }: {
@@ -24,12 +30,12 @@ export default async function HackathonDetailPage({
   return (
     <div className="container-shell py-16 sm:py-20">
       <SectionHeading
-        eyebrow="Hackathon Detail"
+        eyebrow="해커톤 상세"
         title={hackathon.title}
         description={hackathon.description}
         action={
           <div className="flex flex-wrap gap-2">
-            <Badge>{hackathon.status}</Badge>
+            <Badge>{statusLabelMap[hackathon.status]}</Badge>
             {hackathon.tags.map((tag) => (
               <Badge key={tag}>{tag}</Badge>
             ))}
@@ -44,11 +50,11 @@ export default async function HackathonDetailPage({
             <p className="mt-3 text-lg text-muted">{hackathon.subtitle}</p>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <div className="rounded-[24px] bg-[#f8f3eb] p-5">
-                <p className="text-sm text-muted">Host</p>
+                <p className="text-sm text-muted">주최</p>
                 <p className="mt-2 font-medium">{hackathon.host}</p>
               </div>
               <div className="rounded-[24px] bg-[#f8f3eb] p-5">
-                <p className="text-sm text-muted">Deadline</p>
+                <p className="text-sm text-muted">마감일</p>
                 <p className="mt-2 font-medium">{formatDate(hackathon.dates.submissionDeadline)}</p>
               </div>
             </div>
@@ -85,7 +91,7 @@ export default async function HackathonDetailPage({
           </Card>
 
           <Card className="bg-white">
-            <CardTitle>Prize</CardTitle>
+            <CardTitle>상금</CardTitle>
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {hackathon.prizes.map((item) => (
                 <div key={item.title} className="rounded-[24px] border border-border bg-[#fffaf2] p-5">
@@ -98,7 +104,6 @@ export default async function HackathonDetailPage({
           </Card>
 
           <HackathonTeamsPanel hackathon={hackathon} />
-
           <SubmissionPanel hackathon={hackathon} />
           <LeaderboardTable hackathon={hackathon} />
         </div>

@@ -8,13 +8,15 @@ export const storageKeys = {
   teamPosts: "hackport.team-posts",
   submissions: "hackport.submissions",
   teamInvites: "hackport.team-invites",
+  users: "hackport.users",
+  currentUser: "hackport.current-user",
 } as const;
 
 export const defaultProfile: CampProfile = {
-  nickname: "Local Builder",
-  role: "frontend",
+  nickname: "로컬 빌더",
+  role: "프론트엔드",
   techStacks: ["Next.js", "TypeScript"],
-  collaborationStyle: "fast-feedback",
+  collaborationStyle: "빠른 피드백",
   level: "intermediate",
   beginnerFriendly: true,
 };

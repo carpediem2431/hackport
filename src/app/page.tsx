@@ -8,22 +8,22 @@ import { SectionHeading } from "@/components/ui/section-heading";
 
 const valueCards = [
   {
-    title: "Hackathon Copilot",
+    title: "해커톤 코파일럿",
     body: "현재 상태를 기억하고 다음 행동을 바로 제안해 흐름이 끊기지 않게 만듭니다.",
     icon: Layers3,
   },
   {
-    title: "Team Fit Matching",
+    title: "팀 적합도 매칭",
     body: "역할, 스택, 협업 방식 기준으로 팀과의 적합도를 계산합니다.",
     icon: Users2,
   },
   {
-    title: "Submission Guard",
+    title: "제출 가드",
     body: "자동 저장, 검증, 공개/비공개 구분으로 제출 실수를 줄입니다.",
     icon: ShieldCheck,
   },
   {
-    title: "Explainable Leaderboard",
+    title: "설명 가능한 리더보드",
     body: "점수 분해와 배지, 변화 상태로 결과를 납득 가능하게 보여줍니다.",
     icon: Trophy,
   },
@@ -96,7 +96,7 @@ export default function HomePage() {
 
       <section className="container-shell relative z-10 py-20">
         <SectionHeading
-          eyebrow="Journey"
+          eyebrow="여정"
           title="심사에서 바로 보여줄 수 있는 연결된 UX"
           description="탐색, 팀 구성, 제출, 결과 확인이 서로 끊기지 않도록 화면과 상태를 연결했습니다."
           eyebrowClassName="text-black/60"
@@ -107,7 +107,7 @@ export default function HomePage() {
           {[
             "목록에서 해커톤을 고른 뒤 상세 페이지에서 일정, 평가, 제출 규칙을 한 번에 확인",
             "Camp에서 역할과 스택을 입력하고 적합도 높은 팀을 빠르게 탐색",
-            "Submission Guard로 초안을 저장하고 체크리스트를 통과한 뒤 안전하게 제출",
+            "제출 가드로 초안을 저장하고 체크리스트를 통과한 뒤 안전하게 제출",
           ].map((item, index) => (
             <FadeIn key={item} delay={index * 0.1}>
               <div className="surface-tint rounded-[32px] border border-border p-6 shadow-[0_16px_40px_rgba(82,39,255,0.08)]">

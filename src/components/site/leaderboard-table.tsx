@@ -8,6 +8,12 @@ import { demoLeaderboard } from "@/lib/data/hackathons";
 import { Hackathon } from "@/lib/types";
 import { StateCard } from "@/components/ui/state-card";
 
+const deltaLabelMap = {
+  up: "상승",
+  down: "하락",
+  flat: "유지",
+} as const;
+
 export function LeaderboardTable({ hackathon }: { hackathon: Hackathon }) {
   const [showNonSubmitters, setShowNonSubmitters] = useState(false);
   const rows = useMemo(() => demoLeaderboard.filter((item) => item.hackathonSlug === hackathon.slug), [hackathon.slug]);
@@ -18,7 +24,7 @@ export function LeaderboardTable({ hackathon }: { hackathon: Hackathon }) {
     <Card className="bg-white">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <CardTitle>Leaderboard</CardTitle>
+          <CardTitle>리더보드</CardTitle>
           <CardDescription className="mt-2">제출 완료 팀만 순위에 포함하고, 미제출 팀은 별도로 표시합니다.</CardDescription>
         </div>
         <button
@@ -51,7 +57,7 @@ export function LeaderboardTable({ hackathon }: { hackathon: Hackathon }) {
                   {row.delta === "up" ? <ArrowUp className="h-4 w-4 text-success" /> : null}
                   {row.delta === "down" ? <ArrowDown className="h-4 w-4 text-danger" /> : null}
                   {row.delta === "flat" ? <Minus className="h-4 w-4 text-muted" /> : null}
-                  {row.delta === "up" ? "상승" : row.delta === "down" ? "하락" : "유지"}
+                  {deltaLabelMap[row.delta]}
                 </div>
               </div>
               <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">

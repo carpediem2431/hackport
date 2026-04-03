@@ -33,7 +33,7 @@ export function CopilotPanel({ hackathon }: { hackathon: Hackathon }) {
       <div className="relative">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-white/50">Hackathon Copilot</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-white/50">해커톤 코파일럿</p>
             <CardTitle className="mt-3 text-white">준비도 {state.readiness}%</CardTitle>
             <CardDescription className="mt-2 text-white/68">{state.highlight}</CardDescription>
           </div>

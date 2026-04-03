@@ -28,7 +28,7 @@ export function SectionHeading({
         ) : null}
         <h2 className={cn("font-display text-3xl font-semibold tracking-tight sm:text-4xl", titleClassName)}>{title}</h2>
         {description ? (
-          <p className={cn("mt-3 text-pretty text-base leading-7 text-muted", descriptionClassName)}>
+          <p className={cn("mt-3 text-pretty text-base leading-7 text-foreground", descriptionClassName)}>
             {description}
           </p>
         ) : null}

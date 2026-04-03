@@ -14,6 +14,12 @@ import { defaultTeamInvites, storageKeys } from "@/lib/storage";
 import { Hackathon, TeamInvite, TeamPost } from "@/lib/types";
 import { StateCard } from "@/components/ui/state-card";
 
+const inviteStatusLabelMap = {
+  pending: "대기 중",
+  accepted: "수락됨",
+  rejected: "거절됨",
+} as const;
+
 export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
   const { value: teamPosts, ready: teamsReady } = useLocalStorageState<TeamPost[]>(storageKeys.teamPosts, []);
   const { value: invites, setValue: setInvites, ready: invitesReady } = useLocalStorageState<TeamInvite[]>(storageKeys.teamInvites, defaultTeamInvites);
@@ -52,7 +58,7 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
       id: `invite-${Date.now()}`,
       teamId: selectedTeam.id,
       hackathonSlug: hackathon.slug,
-      senderName: "Local Builder",
+      senderName: "로컬 빌더",
       note: requestNote.trim(),
       status: "pending",
       createdAt: new Date().toISOString(),
@@ -65,23 +71,19 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
 
   return (
     <Card className="bg-white">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <CardTitle>Teams</CardTitle>
-          <CardDescription className="mt-2">해당 해커톤 팀을 확인하고, 참여 요청을 보내거나 내가 관리하는 팀의 초대를 수락/거절하세요.</CardDescription>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => setGuideOpen(true)}>
-            <Info className="mr-2 h-4 w-4" />
-            팀 가이드
+      <CardTitle>팀</CardTitle>
+      <CardDescription className="mt-2">해당 해커톤 팀을 확인하고, 참여 요청을 보내거나 내가 관리하는 팀의 초대를 수락/거절하세요.</CardDescription>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" onClick={() => setGuideOpen(true)}>
+          <Info className="mr-2 h-4 w-4" />
+          팀 가이드
+        </Button>
+        <Link href={`/camp?hackathon=${hackathon.slug}`}>
+          <Button size="sm">
+            Camp에서 보기
+            <ArrowUpRight className="ml-2 h-4 w-4" />
           </Button>
-          <Link href={`/camp?hackathon=${hackathon.slug}`}>
-            <Button size="sm">
-              Camp에서 보기
-              <ArrowUpRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
+        </Link>
       </div>
 
       <div className="mt-6 grid gap-4">
@@ -98,7 +100,7 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
                     <div className="mb-3 flex flex-wrap gap-2">
                       <Badge>{team.isOpen ? "모집중" : "마감"}</Badge>
                       {team.ownerId === "local-user" ? <Badge className="bg-brand-soft text-brand-strong">내가 관리 중</Badge> : null}
-                      {team.beginnerFriendly ? <Badge>Beginner Friendly</Badge> : null}
+                      {team.beginnerFriendly ? <Badge>초보자 환영</Badge> : null}
                     </div>
                     <h3 className="font-display text-xl font-semibold">{team.teamName}</h3>
                     <p className="mt-2 text-sm leading-6 text-muted">{team.intro}</p>
@@ -144,7 +146,7 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
                                 <p className="font-medium">{invite.senderName}</p>
                                 <p className="mt-1 text-muted">{invite.note}</p>
                                 <div className="mt-3 flex flex-wrap gap-2">
-                                  <Badge>{invite.status}</Badge>
+                                  <Badge>{inviteStatusLabelMap[invite.status]}</Badge>
                                   {invite.status === "pending" ? (
                                     <>
                                       <Button size="sm" variant="secondary" onClick={() => handleInviteStatus(invite.id, "accepted")}>

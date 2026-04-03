@@ -27,6 +27,16 @@ export function daysUntil(value: string) {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
 }
 
+const levelMap: Record<string, string> = {
+  beginner: "초급",
+  intermediate: "중급",
+  advanced: "고급",
+}
+
+export function translateLevel(level: string) {
+  return levelMap[level] ?? level
+}
+
 export function formatFileSize(size: number) {
   if (size < 1024) {
     return `${size} B`

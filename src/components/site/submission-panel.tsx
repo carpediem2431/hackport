@@ -91,16 +91,16 @@ export function SubmissionPanel({ hackathon }: { hackathon: Hackathon }) {
     <Card className="bg-white">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <CardTitle>Submit</CardTitle>
+          <CardTitle>제출</CardTitle>
           <CardDescription className="mt-2">제출 가이드, 노트, 링크, 실제 파일 업로드, 공개/비공개 구분을 한 흐름으로 관리합니다.</CardDescription>
         </div>
-        <div className="rounded-full bg-brand-soft px-4 py-2 text-sm font-medium text-brand-strong">Auto-saving in browser</div>
+        <div className="rounded-full bg-brand-soft px-4 py-2 text-sm font-medium text-brand-strong">브라우저에 자동 저장 중</div>
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="space-y-4">
           <div className="rounded-[24px] border border-border bg-[#f7f3eb] p-5 text-sm text-muted">
-            <p className="font-semibold text-foreground">Submit Guide</p>
+              <p className="font-semibold text-foreground">제출 가이드</p>
             <div className="mt-3 grid gap-2">
               <div>필수 항목: {hackathon.submissionRules.required.join(", ")}</div>
               <div>선택 항목: {hackathon.submissionRules.optional.join(", ")}</div>
@@ -111,8 +111,8 @@ export function SubmissionPanel({ hackathon }: { hackathon: Hackathon }) {
           <Textarea placeholder="제출 노트 / 아이디어 정리" value={draft.notes} onChange={(event) => updateDraft({ notes: event.target.value })} />
           <Textarea placeholder="공개용 한 줄 요약 또는 서비스 설명" value={draft.publicSummary} onChange={(event) => updateDraft({ publicSummary: event.target.value })} />
           <div className="grid gap-4 md:grid-cols-2">
-            <Input placeholder="Demo URL" value={draft.demoLink} onChange={(event) => updateDraft({ demoLink: event.target.value })} />
-            <Input placeholder="Repository URL" value={draft.repoLink} onChange={(event) => updateDraft({ repoLink: event.target.value })} />
+            <Input placeholder="데모 URL" value={draft.demoLink} onChange={(event) => updateDraft({ demoLink: event.target.value })} />
+            <Input placeholder="저장소 URL" value={draft.repoLink} onChange={(event) => updateDraft({ repoLink: event.target.value })} />
           </div>
 
           <label className="block rounded-[24px] border border-dashed border-border bg-[#fffaf2] p-5 text-sm">
@@ -131,7 +131,7 @@ export function SubmissionPanel({ hackathon }: { hackathon: Hackathon }) {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-medium">{draft.uploadedFile.name}</p>
-                  <p className="mt-1 text-muted">{draft.uploadedFile.type || "unknown type"} · {formatFileSize(draft.uploadedFile.size)}</p>
+                  <p className="mt-1 text-muted">{draft.uploadedFile.type || "알 수 없는 형식"} · {formatFileSize(draft.uploadedFile.size)}</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => updateDraft({ uploadedFile: null, fileMeta: "" })}>
                   <Trash2 className="mr-2 h-4 w-4" />제거

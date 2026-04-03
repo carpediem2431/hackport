@@ -144,3 +144,14 @@ export type SubmissionValidation = {
   isValid: boolean;
   issues: string[];
 };
+
+export type AuthUser = {
+  email: string;
+  password: string;
+  nickname: string;
+  role: string;
+  techStacks: string[];
+  collaborationStyle: string;
+  level: "beginner" | "intermediate" | "advanced";
+  createdAt: string;
+};

@@ -57,7 +57,7 @@
   --color-surface: var(--surface);
   --color-surface-strong: var(--surface-strong);
   --color-card: var(--card);
-  --color-muted: var(--muted);
+  --color-muted: var(--foreground);
   --color-muted-soft: var(--muted-soft);
   --color-border: var(--border);
   --color-brand: var(--brand);
@@ -251,5 +251,14 @@ select {
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  .bg-foreground .text-muted,
+  .bg-black .text-muted,
+  [class*="bg-foreground/"] .text-muted,
+  [class*="bg-black/"] .text-muted {
+    color: var(--background);
   }
 }

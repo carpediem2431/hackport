@@ -12,6 +12,15 @@ import { StateCard } from "@/components/ui/state-card";
 import { getHackathons, getHackathonTags } from "@/lib/hackathons";
 import { formatDate, formatDateWithYear } from "@/lib/utils";
 
+const statusLabelMap = {
+  all: "전체",
+  upcoming: "예정",
+  live: "진행 중",
+  closed: "마감",
+} as const;
+
+const statusOptions = ["all", "upcoming", "live", "closed"] as const;
+
 export function HackathonListClient() {
   const [status, setStatus] = useState<"all" | "upcoming" | "live" | "closed">("all");
   const [tag, setTag] = useState("all");
@@ -31,14 +40,14 @@ export function HackathonListClient() {
         <div className="grid gap-4 grid-cols-1">
           <Input placeholder="해커톤 제목, 태그, 키워드 검색" value={query} onChange={(event) => setQuery(event.target.value)} />
           <div className="flex flex-wrap gap-2">
-            {["all", "upcoming", "live", "closed"].map((option) => (
+            {statusOptions.map((option) => (
               <button
                 key={option}
                 className={`rounded-full px-4 py-3 text-sm font-medium ${status === option ? "bg-foreground text-white" : "bg-white text-foreground"}`}
                 onClick={() => setStatus(option as typeof status)}
                 type="button"
               >
-                {option}
+                {statusLabelMap[option] ?? option}
               </button>
             ))}
           </div>
@@ -50,7 +59,7 @@ export function HackathonListClient() {
                 onClick={() => setTag(option)}
                 type="button"
               >
-                {option}
+                {option === "all" ? "전체" : option}
               </button>
             ))}
           </div>
@@ -71,7 +80,7 @@ export function HackathonListClient() {
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                   <div className="max-w-3xl">
                     <div className="mb-4 flex flex-wrap gap-2">
-                      <Badge>{item.status}</Badge>
+                      <Badge>{statusLabelMap[item.status]}</Badge>
                       {item.tags.map((tagItem) => (
                         <Badge key={tagItem}>{tagItem}</Badge>
                       ))}

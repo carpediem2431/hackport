@@ -5,9 +5,9 @@ export default function CampPage() {
   return (
     <div className="container-shell py-16 sm:py-20">
       <SectionHeading
-        eyebrow="Team Matching"
-        title="Camp"
-        description="내 프로필을 입력하고 팀과의 적합도를 확인하거나 직접 모집글을 올려 팀 구성을 시작하세요."
+        eyebrow="팀 매칭"
+        title="캠프"
+        description="해커톤과 입문자 친화 조건으로 팀을 골라보고, 직접 모집글을 올려 팀 구성을 시작하세요."
       />
       <div className="mt-10">
         <CampClient />
