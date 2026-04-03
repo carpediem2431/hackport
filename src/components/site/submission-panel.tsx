@@ -65,7 +65,7 @@ export function SubmissionPanel({ hackathon }: { hackathon: Hackathon }) {
         summary: Boolean(draft.publicSummary),
         demo: Boolean(draft.demoLink),
         repo: Boolean(draft.repoLink),
-        privacy: !(draft.privateMemo ?? "").toLowerCase().includes("password"),
+        privacy: !draft.privateMemo.toLowerCase().includes("password"),
       },
     };
 
@@ -77,8 +77,7 @@ export function SubmissionPanel({ hackathon }: { hackathon: Hackathon }) {
       ...nextProgress,
       updatedAt: new Date().toISOString(),
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- progress/updateProgress intentionally excluded to avoid infinite loop
-  }, [draft, ready]);
+  }, [draft, progress, ready, updateProgress]);
 
   if (!ready) {
     return <StateCard loading title="제출 초안을 불러오는 중입니다" description="제출 링크, 노트, 업로드 파일 메타데이터를 로컬 저장소에서 복원하고 있습니다." />;

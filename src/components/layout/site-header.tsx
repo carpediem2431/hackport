@@ -50,7 +50,7 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-2 md:flex">
           {navigation.map((item) => {
-            const active = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.href}
