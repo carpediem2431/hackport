@@ -36,7 +36,8 @@ import { useLocalStorageState } from "@/hooks/use-local-storage-state";
 import { storageKeys } from "@/lib/storage";
 import type { AuthUser } from "@/lib/types";
 import { translateCollabStyle, translateLevel, translateRole } from "@/lib/utils";
-import { useRef, useState } from "react";
+import { createBadgeCanvas, loadBadgeImage } from "@/lib/card-texture";
+import { useEffect, useRef, useState } from "react";
 
 const roleOptions = [
   "Frontend",
@@ -100,6 +101,40 @@ export default function MyPage() {
   const captureCanvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const confirmedImage = savedImageReady ? savedImage : null;
+
+  // 2D flat card: generate canvas-based data URL identical to 3D badge texture
+  const [flatCardUrl, setFlatCardUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (viewMode !== "2d" || !confirmedImage) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const generateFlatCard = async () => {
+      const image = await loadBadgeImage(confirmedImage);
+      if (cancelled) return;
+
+      const canvas = createBadgeCanvas({
+        image,
+        user: lanyardUser,
+        side: "front",
+      });
+
+      const dataUrl = canvas.toDataURL("image/png");
+      if (!cancelled) {
+        setFlatCardUrl(dataUrl);
+      }
+    };
+
+    void generateFlatCard();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lanyardUser is derived from currentUser which is stable
+  }, [viewMode, confirmedImage]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editDraft, setEditDraft] = useState<AuthUser | null>(null);
@@ -345,16 +380,28 @@ export default function MyPage() {
                       ) : (
                         <div className="relative overflow-visible">
                           <div className="relative flex h-[500px] items-center justify-center sm:h-[620px]">
-                            <ReflectiveCard
-                              grayscale={0}
-                              color="#ffffff"
-                              capturedImageSrc={confirmedImage}
-                              user={lanyardUser}
-                              style={{
-                                width: "min(100%, 396.8px)",
-                                height: "100%",
-                              }}
-                            />
+                            {flatCardUrl ? (
+                              <img
+                                src={flatCardUrl}
+                                alt="프로필 카드"
+                                style={{
+                                  width: "min(100%, 396.8px)",
+                                  aspectRatio: "900/1280",
+                                  height: "auto",
+                                  borderRadius: "12px",
+                                }}
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  width: "min(100%, 396.8px)",
+                                  aspectRatio: "900/1280",
+                                  height: "auto",
+                                  borderRadius: "12px",
+                                  background: "linear-gradient(135deg, #f3f0eb 0%, #ece7de 55%, #dfd8cc 100%)",
+                                }}
+                              />
+                            )}
                           </div>
                         </div>
                       )}
