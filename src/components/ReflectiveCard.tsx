@@ -25,6 +25,9 @@ interface ReflectiveCardProps {
   className?: string;
   style?: React.CSSProperties;
   user?: UserInfo;
+  /** If provided, renders this static image instead of the live webcam feed */
+  capturedImageSrc?: string;
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
 }
 
 const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
@@ -41,13 +44,17 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
   className = '',
   style = {},
   user,
+  capturedImageSrc,
+  videoRef: externalVideoRef,
 }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const internalVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    if (capturedImageSrc) return;
+
     let stream: MediaStream | null = null;
     let cancelled = false;
-    const videoElement = videoRef.current;
+    const videoElement = externalVideoRef?.current ?? internalVideoRef.current;
 
     const startWebcam = async () => {
       if (!('mediaDevices' in navigator) || !navigator.mediaDevices?.getUserMedia) {
@@ -102,7 +109,8 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
         });
       }
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [capturedImageSrc]);
 
   const baseFrequency = 0.03 / Math.max(0.1, noiseScale);
   const saturation = 1 - Math.max(0, Math.min(1, grayscale));
@@ -166,7 +174,11 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
         </defs>
       </svg>
 
-      <video ref={videoRef} autoPlay playsInline muted className="reflective-video" />
+      {capturedImageSrc ? (
+        <img src={capturedImageSrc} alt="Profile" className="reflective-video" />
+      ) : (
+        <video ref={externalVideoRef ?? internalVideoRef} autoPlay playsInline muted className="reflective-video" />
+      )}
 
       <div className="reflective-noise" />
       <div className="reflective-sheen" />

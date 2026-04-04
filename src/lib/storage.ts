@@ -11,6 +11,7 @@ export const storageKeys = {
   leaderboard: "hackport.leaderboard",
   users: "hackport.users",
   currentUser: "hackport.current-user",
+  profileImage: "hackport.profile-image",
 } as const;
 
 export const defaultProfile: CampProfile = {
