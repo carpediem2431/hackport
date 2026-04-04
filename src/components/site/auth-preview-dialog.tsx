@@ -27,9 +27,11 @@ const LEVEL_LABELS: Record<"beginner" | "intermediate" | "advanced", string> = {
 export function AuthPreviewDialog({
   mode,
   compact = false,
+  triggerClassName,
 }: {
   mode: "login" | "signup";
   compact?: boolean;
+  triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
@@ -145,7 +147,11 @@ export function AuthPreviewDialog({
             : "당신을 소개하는 프로필을 작성해주세요."
       }
       trigger={
-        <Button size={compact ? "sm" : "default"} variant={mode === "login" ? "ghost" : "default"}>
+        <Button
+          size={compact ? "sm" : "default"}
+          variant={mode === "login" ? "ghost" : "default"}
+          className={triggerClassName}
+        >
           {mode === "login" ? "로그인" : "회원가입"}
         </Button>
       }

@@ -2,7 +2,7 @@
 import { ArrowRight, Layers3, ShieldCheck, Trophy, Users2 } from "lucide-react";
 import { AnimatedText } from "@/components/react-bits/animated-text";
 import { FadeIn } from "@/components/react-bits/fade-in";
-import Grainient from "@/components/react-bits/grainient";
+import Iridescence from "@/components/react-bits/iridescence";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/ui/section-heading";
 
@@ -32,27 +32,22 @@ const valueCards = [
 export default function HomePage() {
   return (
     <div className="relative isolate overflow-hidden">
-      <Grainient
+      <Iridescence
         className="pointer-events-none fixed inset-0 z-0"
-        color1="#b89eff"
-        color2="#5227FF"
-        color3="#B19EEF"
-        grainAnimated={false}
-        grainAmount={0.1}
-        timeSpeed={0.25}
-        warpStrength={1}
-        zoom={0.9}
+        color={[0.5, 0.6, 0.8]}
+        speed={1}
+        mouseReact={false}
       />
       <section className="relative z-10 overflow-hidden">
         <div className="container-shell relative flex min-h-[100svh] flex-col justify-center py-20 sm:py-28">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)]">
             <div>
-              <AnimatedText className="max-w-4xl font-display text-5xl font-semibold leading-[1.14] tracking-tight text-balance sm:text-6xl lg:text-7xl">
+              <AnimatedText className="max-w-4xl font-display text-5xl font-semibold leading-[1.14] tracking-tight text-balance text-white sm:text-6xl lg:text-7xl">
                 해커톤의 시작부터 제출과 결과 해석까지, 한 흐름으로 연결합니다.
               </AnimatedText>
               <AnimatedText
                 as="p"
-                className="mt-6 max-w-xl text-pretty text-lg leading-8 text-black/85"
+                className="mt-6 max-w-xl text-pretty text-lg leading-8 text-white/85"
               >
                 HackPort는 해커톤 탐색, 팀 매칭, 제출 준비, 리더보드 확인을 하나의 워크스페이스에 묶고, 브라우저 안에서 사용자의 진행 상태를 기억해 다음 행동을 안내합니다.
               </AnimatedText>
@@ -68,7 +63,7 @@ export default function HomePage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-white/80 bg-white/88 text-black shadow-[0_14px_28px_rgba(15,23,42,0.12)] hover:border-white hover:bg-white"
+                    className="border-white/30 bg-white/10 text-white shadow-[0_14px_28px_rgba(0,0,0,0.2)] hover:border-white/50 hover:bg-white/20"
                   >
                     팀 찾기
                   </Button>
@@ -77,7 +72,7 @@ export default function HomePage() {
                   <Button
                     size="lg"
                     variant="secondary"
-                    className="border-brand-soft/70 bg-brand-soft/35 text-brand-strong shadow-[0_14px_28px_rgba(82,39,255,0.12)] hover:border-brand-soft hover:bg-brand-soft/50"
+                    className="border-brand-soft/70 bg-brand-soft/55 text-white shadow-[0_14px_28px_rgba(82,39,255,0.12)] hover:border-brand-soft hover:bg-brand-soft/70"
                   >
                     랭킹 보기
                   </Button>
@@ -92,10 +87,10 @@ export default function HomePage() {
         <div className="grid gap-5 lg:grid-cols-4">
           {valueCards.map((item, index) => (
             <FadeIn key={item.title} delay={index * 0.05}>
-              <div className="surface-tint h-full rounded-[32px] border border-white/50 p-6 backdrop-blur-xl">
+              <div className="h-full rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
                 <item.icon className="h-7 w-7 text-brand-strong" />
-                <h3 className="mt-5 font-display text-2xl font-semibold text-black">{item.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-black/80">{item.body}</p>
+                <h3 className="mt-5 font-display text-2xl font-semibold text-white">{item.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-white/80">{item.body}</p>
               </div>
             </FadeIn>
           ))}
@@ -107,9 +102,9 @@ export default function HomePage() {
           eyebrow="여정"
           title="심사에서 바로 보여줄 수 있는 연결된 UX"
           description="탐색, 팀 구성, 제출, 결과 확인이 서로 끊기지 않도록 화면과 상태를 연결했습니다."
-          eyebrowClassName="text-black/60"
-          titleClassName="text-black"
-          descriptionClassName="text-black/75"
+          eyebrowClassName="text-white/60"
+          titleClassName="text-white"
+          descriptionClassName="text-white/75"
         />
         <div className="mt-10 grid gap-5 lg:grid-cols-3">
           {[
@@ -118,11 +113,11 @@ export default function HomePage() {
             "제출 가드로 초안을 저장하고 체크리스트를 통과한 뒤 안전하게 제출",
           ].map((item, index) => (
             <FadeIn key={item} delay={index * 0.1}>
-              <div className="surface-tint rounded-[32px] border border-border p-6 shadow-[0_16px_40px_rgba(82,39,255,0.08)]">
+              <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-[0_16px_40px_rgba(82,39,255,0.08)] backdrop-blur-xl">
                 <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-soft font-semibold text-brand-strong">
                   0{index + 1}
                 </div>
-                <p className="text-pretty text-base leading-7 text-black/80">{item}</p>
+                <p className="text-pretty text-base leading-7 text-white/80">{item}</p>
               </div>
             </FadeIn>
           ))}
