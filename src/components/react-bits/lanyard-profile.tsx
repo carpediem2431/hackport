@@ -162,13 +162,14 @@ function createBadgeTexture({
   }
 
   if (image) {
-    // 꽉 차게 (cover), 왼쪽 위 기준 (top-left)
+    // 꽉 차게 (cover), 중앙 정렬
     const scale = Math.max(canvas.width / image.width, canvas.height / image.height);
     const drawWidth = image.width * scale;
     const drawHeight = image.height * scale;
+    const offsetX = (canvas.width - drawWidth) / 2;
+    const offsetY = (canvas.height - drawHeight) / 2;
     
-    // (0,0)에 그리면 원본 이미지의 왼쪽 위를 기준으로 캔버스를 채웁니다.
-    context.drawImage(image, 0, 0, drawWidth, drawHeight);
+    context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
   } else {
     // 이미지가 없을 때의 Fallback
     const fallback = context.createLinearGradient(0, 0, canvas.width, canvas.height);
