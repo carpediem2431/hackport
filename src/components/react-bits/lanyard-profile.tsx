@@ -168,8 +168,70 @@ function createBadgeTexture({
     const drawHeight = image.height * scale;
     const offsetX = (canvas.width - drawWidth) / 2;
     const offsetY = (canvas.height - drawHeight) / 2;
-    
+
     context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+
+    // --- ReflectiveCard-style overlays ---
+
+    // 1) Contrast & brightness boost (matches CSS contrast(120%) brightness(110%))
+    context.save();
+    context.globalCompositeOperation = "color-burn";
+    context.fillStyle = "rgba(0,0,0,0.08)";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.restore();
+
+    // 2) Sheen gradient overlay (135deg diagonal)
+    context.save();
+    context.globalCompositeOperation = "overlay";
+    const sheen = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+    sheen.addColorStop(0, "rgba(255,255,255,0.35)");
+    sheen.addColorStop(0.4, "rgba(255,255,255,0.10)");
+    sheen.addColorStop(0.5, "rgba(255,255,255,0.00)");
+    sheen.addColorStop(0.6, "rgba(255,255,255,0.10)");
+    sheen.addColorStop(1, "rgba(255,255,255,0.25)");
+    context.fillStyle = sheen;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.restore();
+
+    // 3) Noise overlay (fractal noise simulation via random alpha dots)
+    context.save();
+    context.globalCompositeOperation = "overlay";
+    const noiseData = context.createImageData(canvas.width, canvas.height);
+    for (let i = 0; i < noiseData.data.length; i += 4) {
+      const v = Math.random() * 255;
+      noiseData.data[i] = v;
+      noiseData.data[i + 1] = v;
+      noiseData.data[i + 2] = v;
+      noiseData.data[i + 3] = 25; // low alpha for subtle grain
+    }
+    context.putImageData(noiseData, 0, 0);
+    // Re-draw image areas that were overwritten by putImageData — composite properly
+    context.globalCompositeOperation = "destination-over";
+    context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+    context.restore();
+
+    // 4) Thin holographic color shift band
+    context.save();
+    context.globalCompositeOperation = "color-dodge";
+    const holo = context.createLinearGradient(0, canvas.height * 0.3, canvas.width, canvas.height * 0.7);
+    holo.addColorStop(0, "rgba(120,80,255,0.06)");
+    holo.addColorStop(0.5, "rgba(80,200,255,0.08)");
+    holo.addColorStop(1, "rgba(255,120,200,0.06)");
+    context.fillStyle = holo;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.restore();
+
+    // 5) Border (gradient stroke)
+    context.save();
+    const borderGrad = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+    borderGrad.addColorStop(0, "rgba(255,255,255,0.7)");
+    borderGrad.addColorStop(0.5, "rgba(255,255,255,0.2)");
+    borderGrad.addColorStop(1, "rgba(255,255,255,0.6)");
+    context.strokeStyle = borderGrad;
+    context.lineWidth = 6;
+    context.roundRect(3, 3, canvas.width - 6, canvas.height - 6, 24);
+    context.stroke();
+    context.restore();
   } else {
     // 이미지가 없을 때의 Fallback
     const fallback = context.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -190,7 +252,7 @@ function createBadgeTexture({
   texture.flipY = false; // 상하 반전 해결
   texture.wrapS = THREE.RepeatWrapping;
   texture.repeat.x = -1; // 좌우 반전(거울상) 해결
-  
+
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
@@ -458,8 +520,9 @@ function Band({
               <meshStandardMaterial
                 map={frontTexture}
                 map-anisotropy={16}
-                roughness={1}
-                metalness={0}
+                roughness={0.35}
+                metalness={0.15}
+                envMapIntensity={1.5}
               />
             </mesh>
             <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
