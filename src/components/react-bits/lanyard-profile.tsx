@@ -2,7 +2,7 @@
 
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, type ThreeEvent, useFrame } from "@react-three/fiber";
-import { Environment, Lightformer, RoundedBox } from "@react-three/drei";
+import { Environment, Lightformer, useGLTF, useTexture } from "@react-three/drei";
 import {
   BallCollider,
   CuboidCollider,
@@ -22,7 +22,6 @@ interface LanyardProfileProps {
   gravity?: [number, number, number];
   fov?: number;
   transparent?: boolean;
-  cardImage?: string | null;
   profileImage?: string | null;
   user?: {
     nickname: string;
@@ -39,11 +38,11 @@ export default function LanyardProfile({
   gravity = [0, -40, 0],
   fov = 20,
   transparent = true,
-  cardImage = null,
   profileImage = null,
   user = null,
 }: LanyardProfileProps) {
   const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== "undefined" && window.innerWidth < 768);
+  const [contextLost, setContextLost] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -51,18 +50,46 @@ export default function LanyardProfile({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  if (contextLost) {
+    return (
+      <div className={styles.wrapper}>
+        <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brand-strong">3D Lanyard Unavailable</p>
+          <p className="max-w-sm text-sm leading-6 text-muted">
+            브라우저 그래픽 컨텍스트가 재설정되어 인터랙티브 랜야드를 잠시 표시할 수 없습니다. 페이지를 새로 열거나 다시 촬영하면 다시 시도할 수 있습니다.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.wrapper}>
       <Canvas
+        fallback={
+          <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted">
+            이 브라우저에서는 3D 랜야드를 표시할 수 없습니다.
+          </div>
+        }
         className={styles.canvas}
         camera={{ position, fov }}
         dpr={[1, isMobile ? 1.5 : 2]}
         gl={{ alpha: transparent }}
-        onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1)}
+        onCreated={({ gl }) => {
+          gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1);
+
+          const canvas = gl.domElement;
+          const handleContextLost = (event: Event) => {
+            event.preventDefault();
+            setContextLost(true);
+          };
+
+          canvas.addEventListener("webglcontextlost", handleContextLost, { once: true });
+        }}
       >
         <ambientLight intensity={Math.PI} />
         <Physics gravity={gravity} timeStep={isMobile ? 1 / 30 : 1 / 60}>
-          <Band cardImage={cardImage} isMobile={isMobile} profileImage={profileImage} user={user} />
+          <Band isMobile={isMobile} profileImage={profileImage} user={user} />
         </Physics>
         <Environment blur={0.75}>
           <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
@@ -73,74 +100,6 @@ export default function LanyardProfile({
       </Canvas>
     </div>
   );
-}
-
-function createLanyardTextureSync() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 64;
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    return new THREE.Texture();
-  }
-
-  context.fillStyle = "#d8ceff";
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.strokeStyle = "#5227FF";
-  context.lineWidth = 10;
-
-  for (let i = -64; i < canvas.width + 64; i += 54) {
-    context.beginPath();
-    context.moveTo(i, 0);
-    context.lineTo(i + 36, canvas.height);
-    context.stroke();
-  }
-
-  context.fillStyle = "#ffffff";
-  context.font = "bold 18px Arial";
-  context.fillText("HACKPORT", 24, 38);
-  context.fillText("HACKPORT", 188, 38);
-  context.fillText("HACKPORT", 352, 38);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-  texture.needsUpdate = true;
-  return texture;
-}
-
-function createLanyardTextureFromImage(image: HTMLImageElement) {
-  const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 64;
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    return new THREE.Texture();
-  }
-
-  context.save();
-  const scale = Math.max(canvas.width / image.width, canvas.height / image.height);
-  const drawWidth = image.width * scale;
-  const drawHeight = image.height * scale;
-  const offsetX = (canvas.width - drawWidth) / 2;
-  const offsetY = (canvas.height - drawHeight) / 2;
-  context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
-  context.restore();
-
-  context.fillStyle = "rgba(82, 39, 255, 0.45)";
-  context.fillRect(0, 0, canvas.width, canvas.height);
-
-  context.fillStyle = "#ffffff";
-  context.font = "bold 18px Arial";
-  context.fillText("HACKPORT", 24, 38);
-  context.fillText("HACKPORT", 188, 38);
-  context.fillText("HACKPORT", 352, 38);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-  texture.needsUpdate = true;
-  return texture;
 }
 
 function createRoundedRectPath(
@@ -178,6 +137,7 @@ function loadBadgeImage(src: string | null) {
   });
 }
 
+
 function createBadgeTexture({
   image,
   user,
@@ -201,229 +161,35 @@ function createBadgeTexture({
     return new THREE.Texture();
   }
 
-  const cardX = 46;
-  const cardY = 46;
-  const cardWidth = canvas.width - 92;
-  const cardHeight = canvas.height - 92;
-  const cardRadius = 54;
-  const innerX = 78;
-  const innerY = 78;
-  const innerWidth = canvas.width - 156;
-  const innerHeight = canvas.height - 156;
-  const innerRadius = 42;
-  const labelColor = "rgba(38,38,38,0.72)";
-  const primaryColor = "rgba(18,18,18,0.96)";
-  const secondaryColor = "rgba(34,34,34,0.78)";
-  const dividerColor = "rgba(255,255,255,0.36)";
-
-  const drawBackgroundImage = () => {
-    if (image) {
-      context.save();
-      createRoundedRectPath(context, cardX, cardY, cardWidth, cardHeight, cardRadius);
-      context.clip();
-      context.fillStyle = "#ebe7e0";
-      context.fillRect(cardX, cardY, cardWidth, cardHeight);
-      context.filter = "saturate(0.82) contrast(1.04) brightness(1.14) blur(16px)";
-      context.translate(canvas.width, 0);
-      context.scale(-1, 1);
-      const scale = Math.max(cardWidth / image.width, cardHeight / image.height) * 1.26;
-      const drawWidth = image.width * scale;
-      const drawHeight = image.height * scale;
-      const offsetX = canvas.width - (cardX + (cardWidth - drawWidth) / 2);
-      const offsetY = cardY + (cardHeight - drawHeight) / 2;
-      context.drawImage(image, offsetX - drawWidth, offsetY, drawWidth, drawHeight);
-      context.restore();
-      context.filter = "none";
-
-      const haze = context.createLinearGradient(cardX, cardY, cardX, cardY + cardHeight);
-      haze.addColorStop(0, "rgba(255,255,255,0.84)");
-      haze.addColorStop(0.18, "rgba(255,255,255,0.72)");
-      haze.addColorStop(0.55, "rgba(255,255,255,0.18)");
-      haze.addColorStop(1, "rgba(255,255,255,0.28)");
-      context.fillStyle = haze;
-      createRoundedRectPath(context, cardX, cardY, cardWidth, cardHeight, cardRadius);
-      context.fill();
-      return;
-    }
-
+  if (image) {
+    // 꽉 차게 (cover), 왼쪽 위 기준 (top-left)
+    const scale = Math.max(canvas.width / image.width, canvas.height / image.height);
+    const drawWidth = image.width * scale;
+    const drawHeight = image.height * scale;
+    
+    // (0,0)에 그리면 원본 이미지의 왼쪽 위를 기준으로 캔버스를 채웁니다.
+    context.drawImage(image, 0, 0, drawWidth, drawHeight);
+  } else {
+    // 이미지가 없을 때의 Fallback
     const fallback = context.createLinearGradient(0, 0, canvas.width, canvas.height);
     fallback.addColorStop(0, "#f3f0eb");
     fallback.addColorStop(0.55, "#ece7de");
     fallback.addColorStop(1, "#dfd8cc");
     context.fillStyle = fallback;
     context.fillRect(0, 0, canvas.width, canvas.height);
-  };
 
-  const drawNoiseOverlay = () => {
-    context.save();
-    context.globalCompositeOperation = "overlay";
-    for (let i = 0; i < 2200; i += 1) {
-      const x = (i * 37) % canvas.width;
-      const y = (i * 61) % canvas.height;
-      const alpha = ((i % 7) + 1) / 180;
-      context.fillStyle = `rgba(120,110,90,${alpha})`;
-      context.fillRect(x, y, 2, 2);
-    }
-    context.restore();
-  };
-
-  const drawGlassCardShell = () => {
-    context.fillStyle = "rgba(255,255,255,0.14)";
-    createRoundedRectPath(context, cardX, cardY, cardWidth, cardHeight, cardRadius);
-    context.fill();
-
-    context.fillStyle = "rgba(255,255,255,0.08)";
-    createRoundedRectPath(context, innerX, innerY, innerWidth, innerHeight, innerRadius);
-    context.fill();
-
-    context.save();
-    context.globalCompositeOperation = "overlay";
-    const sheen = context.createLinearGradient(cardX, cardY, cardX + cardWidth, cardY + cardHeight);
-    sheen.addColorStop(0, "rgba(255,255,255,0.62)");
-    sheen.addColorStop(0.26, "rgba(255,255,255,0.24)");
-    sheen.addColorStop(0.5, "rgba(255,255,255,0)");
-    sheen.addColorStop(0.72, "rgba(255,255,255,0.12)");
-    sheen.addColorStop(1, "rgba(255,255,255,0.3)");
-    context.fillStyle = sheen;
-    createRoundedRectPath(context, cardX, cardY, cardWidth, cardHeight, cardRadius);
-    context.fill();
-    context.restore();
-
-    const border = context.createLinearGradient(cardX, cardY, cardX + cardWidth, cardY + cardHeight);
-    border.addColorStop(0, "rgba(255,255,255,0.9)");
-    border.addColorStop(0.5, "rgba(255,255,255,0.32)");
-    border.addColorStop(1, "rgba(255,255,255,0.72)");
-    context.strokeStyle = border;
-    context.lineWidth = 2;
-    createRoundedRectPath(context, cardX + 1, cardY + 1, cardWidth - 2, cardHeight - 2, cardRadius - 1);
-    context.stroke();
-  };
-
-  const drawSecurityBadge = () => {
-    context.fillStyle = "rgba(255,255,255,0.18)";
-    createRoundedRectPath(context, 106, 118, 236, 66, 18);
-    context.fill();
-    context.strokeStyle = "rgba(255,255,255,0.28)";
-    context.lineWidth = 1.5;
-    createRoundedRectPath(context, 106, 118, 236, 66, 18);
-    context.stroke();
-
-    context.save();
-    context.translate(144, 151);
-    context.strokeStyle = primaryColor;
-    context.lineWidth = 3;
-    context.lineCap = "round";
-    context.beginPath();
-    context.arc(0, -7, 10, Math.PI, 0);
-    context.stroke();
-    context.strokeRect(-12, -6, 24, 22);
-    context.restore();
-
-    context.fillStyle = primaryColor;
-    context.font = "700 22px Inter, Arial, sans-serif";
-    context.fillText("보안 접근", 180, 132);
-  };
-
-  const drawPulseMark = () => {
-    context.save();
-    context.translate(720, 144);
-    context.strokeStyle = primaryColor;
-    context.lineWidth = 5;
-    context.lineCap = "round";
-    context.beginPath();
-    context.moveTo(0, 12);
-    context.lineTo(12, 12);
-    context.lineTo(22, -6);
-    context.lineTo(36, 28);
-    context.lineTo(48, 8);
-    context.lineTo(62, 8);
-    context.stroke();
-    context.restore();
-  };
-
-  const drawFingerprint = (centerX: number, centerY: number, scale = 1) => {
-    context.save();
-    context.translate(centerX, centerY);
-    context.strokeStyle = "rgba(80,80,80,0.5)";
-    context.lineWidth = 3 * scale;
-    [[24, 34], [18, 28], [12, 22], [6, 14]].forEach(([rx, ry], index) => {
-      context.beginPath();
-      context.ellipse(0, 0, rx * scale, ry * scale, 0, Math.PI * (0.2 + index * 0.03), Math.PI * (1.78 - index * 0.03));
-      context.stroke();
-    });
-    context.restore();
-  };
-
-  context.textBaseline = "top";
-  drawBackgroundImage();
-  drawNoiseOverlay();
-  drawGlassCardShell();
-  drawSecurityBadge();
-  drawPulseMark();
-
-  context.strokeStyle = dividerColor;
-  context.lineWidth = 1.5;
-  context.beginPath();
-  context.moveTo(110, 206);
-  context.lineTo(790, 206);
-  context.stroke();
-
-  if (side === "front") {
-    context.fillStyle = primaryColor;
+    context.fillStyle = "rgba(18,18,18,0.96)";
     context.textAlign = "center";
     context.font = "700 72px Inter, Arial, sans-serif";
-    context.fillText(user?.nickname ?? "HackPort User", canvas.width / 2, 818);
-
-    context.font = "500 28px Inter, Arial, sans-serif";
-    context.fillStyle = secondaryColor;
-    context.fillText(user?.role ?? "Product Builder", canvas.width / 2, 914);
-    context.textAlign = "start";
-  } else {
-    context.fillStyle = "rgba(255,255,255,0.15)";
-    createRoundedRectPath(context, 104, 248, 692, 180, 30);
-    context.fill();
-    context.fillStyle = primaryColor;
-    context.font = "700 46px Inter, Arial, sans-serif";
-    context.fillText(user?.nickname ?? "HackPort User", 138, 282);
-    context.font = "500 22px Inter, Arial, sans-serif";
-    context.fillStyle = secondaryColor;
-    context.fillText(user?.role ?? "Product Builder", 140, 350);
-
-    const rows = [
-      ["LEVEL", user?.level ?? "Intermediate"],
-      ["EMAIL", user?.email ?? "hello@hackport.dev"],
-      ["STATUS", "Verified for hackathon entry"],
-    ] as const;
-
-    let rowTop = 532;
-    rows.forEach(([label, value]) => {
-      context.fillStyle = "rgba(255,255,255,0.18)";
-      createRoundedRectPath(context, 104, rowTop, 692, 136, 28);
-      context.fill();
-      context.fillStyle = labelColor;
-      context.font = "700 18px Inter, Arial, sans-serif";
-      context.fillText(label, 136, rowTop + 24);
-      context.fillStyle = primaryColor;
-      context.font = label === "EMAIL" ? "600 24px Menlo, Monaco, monospace" : "700 34px Inter, Arial, sans-serif";
-      context.fillText(value, 136, rowTop + 62);
-      rowTop += 164;
-    });
+    context.fillText(user?.nickname ?? "HackPort User", canvas.width / 2, canvas.height / 2);
   }
 
-  context.beginPath();
-  context.moveTo(110, 1090);
-  context.lineTo(790, 1090);
-  context.stroke();
-
-  context.fillStyle = labelColor;
-  context.font = "700 16px Inter, Arial, sans-serif";
-  context.fillText("이메일", 112, 1126);
-  context.fillStyle = primaryColor;
-  context.font = "500 26px Menlo, Monaco, monospace";
-  context.fillText(user?.email ?? "hello@hackport.dev", 112, 1154);
-  drawFingerprint(748, 1168, 1.05);
-
   const texture = new THREE.CanvasTexture(canvas);
+  // UV 매핑이 뒤집혀 있는 문제를 해결하기 위해 텍스처 레벨에서 상하좌우를 올바르게 보정합니다.
+  texture.flipY = false; // 상하 반전 해결
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.repeat.x = -1; // 좌우 반전(거울상) 해결
+  
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
@@ -431,28 +197,18 @@ function createBadgeTexture({
   texture.needsUpdate = true;
   return texture;
 }
-
-function createCapturedCardTexture(image: HTMLImageElement) {
-  const texture = new THREE.Texture(image);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.minFilter = THREE.LinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-  texture.generateMipmaps = false;
-  texture.needsUpdate = true;
-  return texture;
-}
+useGLTF.preload("/card.glb");
+useTexture.preload("/lanyard.png");
 
 function Band({
   maxSpeed = 50,
   minSpeed = 0,
-  cardImage = null,
   isMobile = false,
   profileImage = null,
   user = null,
 }: {
   maxSpeed?: number;
   minSpeed?: number;
-  cardImage?: string | null;
   isMobile?: boolean;
   profileImage?: string | null;
   user?: {
@@ -468,7 +224,6 @@ function Band({
   const j2 = useRef<RapierRigidBody>(null);
   const j3 = useRef<RapierRigidBody>(null);
   const card = useRef<RapierRigidBody>(null);
-  const bandTextureRef = useRef<THREE.Texture | null>(null);
   const frontTextureRef = useRef<THREE.Texture | null>(null);
   const backTextureRef = useRef<THREE.Texture | null>(null);
 
@@ -500,41 +255,19 @@ function Band({
     linearDamping: 4,
   };
 
-  const [bandTexture, setBandTexture] = useState<THREE.Texture>(() => createLanyardTextureSync());
+  const { nodes, materials } = useGLTF("/card.glb") as unknown as {
+    nodes: { card: THREE.Mesh; clip: THREE.Mesh; clamp: THREE.Mesh };
+    materials: { base: THREE.MeshStandardMaterial; metal: THREE.MeshStandardMaterial };
+  };
+
+  const bandTexture = useTexture("/lanyard.png");
 
   useEffect(() => {
-    bandTextureRef.current = bandTexture;
+    bandTexture.wrapS = THREE.RepeatWrapping;
+    bandTexture.wrapT = THREE.RepeatWrapping;
+    bandTexture.anisotropy = 16;
+    bandTexture.needsUpdate = true;
   }, [bandTexture]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadBandTexture = async () => {
-      if (!profileImage) {
-        setBandTexture((prev) => {
-          const nextTexture = createLanyardTextureSync();
-          prev.dispose();
-          return nextTexture;
-        });
-        return;
-      }
-
-      const image = await loadBadgeImage(profileImage);
-      if (cancelled || !image) return;
-
-      const nextTexture = createLanyardTextureFromImage(image);
-      setBandTexture((prev) => {
-        prev.dispose();
-        return nextTexture;
-      });
-    };
-
-    void loadBandTexture();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [profileImage]);
 
   const curve = useMemo(() => {
     const nextCurve = new THREE.CatmullRomCurve3([
@@ -561,18 +294,18 @@ function Band({
 
   const lineGeometry = useMemo(() => new MeshLineGeometry(), []);
   const lineMaterial = useMemo(
-    () => {
-      const material = new MeshLineMaterial({
-        color: "#ffffff",
-        resolution: new THREE.Vector2(isMobile ? 1000 : 1200, isMobile ? 2000 : 1200),
-        useMap: 1,
-        map: bandTexture,
-        repeat: new THREE.Vector2(-4, 1),
-        lineWidth: 1,
-      });
-      material.depthTest = false;
-      return material;
-    },
+      () => {
+        const material = new MeshLineMaterial({
+          color: "#ffffff",
+          resolution: new THREE.Vector2(1000, isMobile ? 2000 : 1000),
+          useMap: 1,
+          map: bandTexture,
+          repeat: new THREE.Vector2(-4, 1),
+          lineWidth: 1,
+        });
+        material.depthTest = false;
+        return material;
+      },
     [isMobile, bandTexture],
   );
 
@@ -597,32 +330,6 @@ function Band({
     let cancelled = false;
 
     const syncTextures = async () => {
-      if (cardImage) {
-        const capturedCardImage = await loadBadgeImage(cardImage);
-        const nextFrontTexture = capturedCardImage
-          ? createCapturedCardTexture(capturedCardImage)
-          : createBadgeTexture({ image: null, user: badgeUser, side: "front" });
-        const nextBackTexture = capturedCardImage
-          ? createCapturedCardTexture(capturedCardImage)
-          : createBadgeTexture({ image: null, user: badgeUser, side: "back" });
-
-        if (cancelled) {
-          nextFrontTexture.dispose();
-          nextBackTexture.dispose();
-          return;
-        }
-
-        setFrontTexture((previousTexture) => {
-          previousTexture?.dispose();
-          return nextFrontTexture;
-        });
-        setBackTexture((previousTexture) => {
-          previousTexture?.dispose();
-          return nextBackTexture;
-        });
-        return;
-      }
-
       const fallbackFrontTexture = createBadgeTexture({ image: null, user: badgeUser, side: "front" });
       const fallbackBackTexture = createBadgeTexture({ image: null, user: badgeUser, side: "back" });
 
@@ -660,11 +367,10 @@ function Band({
     return () => {
       cancelled = true;
     };
-  }, [badgeUser, cardImage, profileImage]);
+  }, [badgeUser, profileImage]);
 
   useEffect(() => {
     return () => {
-      bandTextureRef.current?.dispose();
       frontTextureRef.current?.dispose();
       backTextureRef.current?.dispose();
       lineGeometry.dispose();
@@ -725,9 +431,9 @@ function Band({
           <BallCollider args={[0.1]} />
         </RigidBody>
         <RigidBody position={[2, 0, 0]} ref={card} {...segmentProps} type={dragged ? "kinematicPosition" : "dynamic"}>
-          <CuboidCollider args={[0.8, 1.125, 0.06]} />
+          <CuboidCollider args={[0.8, 1.125, 0.01]} />
           <group
-            scale={2.2}
+            scale={2.25}
             position={[0, -1.2, -0.05]}
             onPointerOver={() => hover(true)}
             onPointerOut={() => hover(false)}
@@ -747,21 +453,16 @@ function Band({
               drag(new THREE.Vector3().copy(event.point).sub(vec.copy(card.current.translation())));
             }}
           >
-            <RoundedBox args={[1.55, 2.12, 0.08]} radius={0.1} smoothness={4}>
-              <meshPhysicalMaterial color="#ffffff" roughness={0.22} metalness={0.08} clearcoat={1} clearcoatRoughness={0.15} />
-            </RoundedBox>
-            <mesh position={[0, 0, 0.05]}>
-              <planeGeometry args={[1.38, 1.94]} />
-              <meshBasicMaterial color="#ffffff" map={frontTexture} toneMapped={false} />
+            <mesh geometry={nodes.card.geometry}>
+              <meshStandardMaterial
+                map={frontTexture}
+                map-anisotropy={16}
+                roughness={1}
+                metalness={0}
+              />
             </mesh>
-            <mesh position={[0, 0, -0.05]} rotation={[0, Math.PI, 0]}>
-              <planeGeometry args={[1.38, 1.94]} />
-              <meshBasicMaterial color="#ffffff" map={backTexture} toneMapped={false} />
-            </mesh>
-            <mesh position={[0, 1.15, 0.02]}>
-              <boxGeometry args={[0.2, 0.28, 0.1]} />
-              <meshStandardMaterial color="#d8d0f7" metalness={0.85} roughness={0.2} />
-            </mesh>
+            <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
+            <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
           </group>
         </RigidBody>
       </group>

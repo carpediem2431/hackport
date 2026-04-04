@@ -49,6 +49,11 @@ export function useLocalStorageState<T>(key: string, initialValue: T) {
 
   const getServerSnapshot = useCallback(() => initialValue, [initialValue]);
   const value = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const ready = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
 
   const update = useCallback(
     (next: StorageStateUpdater<T>) => {
@@ -60,5 +65,5 @@ export function useLocalStorageState<T>(key: string, initialValue: T) {
     [initialValue, key],
   );
 
-  return { value, setValue: update, ready: true };
+  return { value, setValue: update, ready };
 }

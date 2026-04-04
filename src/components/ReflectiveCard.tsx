@@ -28,6 +28,9 @@ interface ReflectiveCardProps {
   /** If provided, renders this static image instead of the live webcam feed */
   capturedImageSrc?: string;
   videoRef?: React.RefObject<HTMLVideoElement | null>;
+  mediaFit?: React.CSSProperties["objectFit"];
+  mediaPosition?: React.CSSProperties["objectPosition"];
+  mediaTransform?: React.CSSProperties["transform"];
 }
 
 const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
@@ -46,6 +49,9 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
   user,
   capturedImageSrc,
   videoRef: externalVideoRef,
+  mediaFit = 'cover',
+  mediaPosition = 'center',
+  mediaTransform = 'scale(1.2) scaleX(-1)',
 }) => {
   const internalVideoRef = useRef<HTMLVideoElement>(null);
 
@@ -109,8 +115,7 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
         });
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [capturedImageSrc]);
+  }, [capturedImageSrc, externalVideoRef]);
 
   const baseFrequency = 0.03 / Math.max(0.1, noiseScale);
   const saturation = 1 - Math.max(0, Math.min(1, grayscale));
@@ -123,6 +128,12 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
     '--text-color': color,
     '--saturation': saturation
   } as React.CSSProperties;
+
+  const mediaStyle: React.CSSProperties = {
+    objectFit: mediaFit,
+    objectPosition: mediaPosition,
+    transform: mediaTransform,
+  };
 
   return (
     <div className={`reflective-card-container ${className}`} style={{ ...style, ...cssVariables }}>
@@ -175,9 +186,9 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
       </svg>
 
       {capturedImageSrc ? (
-        <img src={capturedImageSrc} alt="Profile" className="reflective-video" />
+        <img src={capturedImageSrc} alt="Profile" className="reflective-video" style={mediaStyle} />
       ) : (
-        <video ref={externalVideoRef ?? internalVideoRef} autoPlay playsInline muted className="reflective-video" />
+        <video ref={externalVideoRef ?? internalVideoRef} autoPlay playsInline muted className="reflective-video" style={mediaStyle} />
       )}
 
       <div className="reflective-noise" />
