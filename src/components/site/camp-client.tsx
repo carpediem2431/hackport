@@ -248,10 +248,10 @@ export function CampClient() {
               <button
                 type="button"
                 aria-pressed={showBeginnerFriendlyOnly}
-                className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-medium transition ${showBeginnerFriendlyOnly ? "border-brand bg-brand-soft/35 text-foreground shadow-sm" : "border-border bg-white text-muted hover:border-brand/40 hover:bg-[#f8f3eb]"}`}
+                className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-medium transition ${showBeginnerFriendlyOnly ? "border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm" : "border-border bg-white text-muted hover:border-emerald-300 hover:bg-emerald-50"}`}
                 onClick={() => setShowBeginnerFriendlyOnly((current) => !current)}
               >
-                <span className={`h-2.5 w-2.5 rounded-full ${showBeginnerFriendlyOnly ? "bg-brand" : "bg-border"}`} />
+                <span className={`h-2.5 w-2.5 rounded-full ${showBeginnerFriendlyOnly ? "bg-emerald-500" : "bg-border"}`} />
                 <span className="flex flex-col">
                   <span>입문자 환영 팀만</span>
                   <span className={`text-xs ${showBeginnerFriendlyOnly ? "text-foreground/70" : "text-muted"}`}>
