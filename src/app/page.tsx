@@ -52,7 +52,7 @@ export default function HomePage() {
               </AnimatedText>
               <AnimatedText
                 as="p"
-                className="mt-6 max-w-xl text-pretty text-lg leading-8 text-white/92 [text-shadow:0_2px_18px_rgba(43,16,122,0.24)]"
+                className="mt-6 max-w-xl text-pretty text-lg leading-8 text-black/85"
               >
                 HackPort는 해커톤 탐색, 팀 매칭, 제출 준비, 리더보드 확인을 하나의 워크스페이스에 묶고, 브라우저 안에서 사용자의 진행 상태를 기억해 다음 행동을 안내합니다.
               </AnimatedText>
@@ -65,12 +65,20 @@ export default function HomePage() {
                   </Button>
                 </Link>
                 <Link href="/camp">
-                  <Button size="lg" variant="outline">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-white/80 bg-white/88 text-black shadow-[0_14px_28px_rgba(15,23,42,0.12)] hover:border-white hover:bg-white"
+                  >
                     팀 찾기
                   </Button>
                 </Link>
                 <Link href="/rankings">
-                  <Button size="lg" variant="secondary">
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="border-brand-soft/70 bg-brand-soft/35 text-brand-strong shadow-[0_14px_28px_rgba(82,39,255,0.12)] hover:border-brand-soft hover:bg-brand-soft/50"
+                  >
                     랭킹 보기
                   </Button>
                 </Link>

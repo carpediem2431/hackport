@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowUpRight, Check, Info, X } from "lucide-react";
+import { ArrowUpRight, Check, Info, Plus, Users, X } from "lucide-react";
 import { AppDialog } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useHackathonProgress } from "@/hooks/use-hackathon-progress";
 import { useLocalStorageState } from "@/hooks/use-local-storage-state";
 import { defaultTeamInvites, storageKeys } from "@/lib/storage";
 import { Hackathon, TeamInvite, TeamPost } from "@/lib/types";
+import { EmptyState } from "@/components/ui/empty-state";
 import { StateCard } from "@/components/ui/state-card";
 
 const inviteStatusLabelMap = {
@@ -22,12 +24,16 @@ const inviteStatusLabelMap = {
 
 export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
   const { value: teamPosts, ready: teamsReady } = useLocalStorageState<TeamPost[]>(storageKeys.teamPosts, []);
+  const { setValue: setStoredTeams } = useLocalStorageState<TeamPost[]>(storageKeys.teamPosts, []);
   const { value: invites, setValue: setInvites, ready: invitesReady } = useLocalStorageState<TeamInvite[]>(storageKeys.teamInvites, defaultTeamInvites);
   const { progress, updateProgress } = useHackathonProgress(hackathon.slug);
   const [guideOpen, setGuideOpen] = useState(false);
   const [requestOpen, setRequestOpen] = useState(false);
   const [requestNote, setRequestNote] = useState("");
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [inlineFormOpen, setInlineFormOpen] = useState(false);
+  const [inlineTeamName, setInlineTeamName] = useState("");
+  const [inlineIntro, setInlineIntro] = useState("");
 
   const teams = useMemo(() => teamPosts.filter((team) => team.hackathonSlug === hackathon.slug), [hackathon.slug, teamPosts]);
   const ownedTeams = teams.filter((team) => team.ownerId === "local-user");
@@ -69,6 +75,38 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
     setRequestOpen(false);
   };
 
+  const handleInlineCreateTeam = () => {
+    if (!inlineTeamName.trim()) return;
+
+    const nextTeam: TeamPost = {
+      id: `team-${Date.now()}`,
+      hackathonSlug: hackathon.slug,
+      teamName: inlineTeamName.trim(),
+      intro: inlineIntro.trim(),
+      lookingFor: [],
+      techStacks: [],
+      isOpen: true,
+      collaborationStyle: "빠른 피드백",
+      beginnerFriendly: true,
+      ownerId: "local-user",
+      messages: [],
+      updatedAt: new Date().toISOString(),
+    };
+
+    setStoredTeams([nextTeam, ...teamPosts]);
+    updateProgress({
+      viewedSections: progress?.viewedSections ?? [],
+      hasTeam: true,
+      hasDraft: progress?.hasDraft ?? false,
+      isSubmitted: progress?.isSubmitted ?? false,
+      checklistState: progress?.checklistState ?? {},
+      updatedAt: new Date().toISOString(),
+    });
+    setInlineTeamName("");
+    setInlineIntro("");
+    setInlineFormOpen(false);
+  };
+
   return (
     <Card className="bg-white">
       <CardTitle>팀</CardTitle>
@@ -84,11 +122,38 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
             <ArrowUpRight className="ml-2 h-4 w-4" />
           </Button>
         </Link>
+        <Button size="sm" variant="outline" onClick={() => setInlineFormOpen((prev) => !prev)}>
+          <Plus className="mr-2 h-4 w-4" />
+          팀 만들기
+        </Button>
       </div>
+
+      {inlineFormOpen ? (
+        <div className="mt-3 grid gap-3 rounded-[24px] border border-border p-4">
+          <Input placeholder="팀 이름" value={inlineTeamName} onChange={(event) => setInlineTeamName(event.target.value)} />
+          <Textarea placeholder="팀 소개" value={inlineIntro} onChange={(event) => setInlineIntro(event.target.value)} />
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handleInlineCreateTeam}>만들기</Button>
+            <Button variant="secondary" onClick={() => setInlineFormOpen(false)}>
+              취소
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-6 grid gap-4">
         {teams.length === 0 ? (
-          <StateCard title="등록된 팀이 아직 없습니다" description="Camp에서 첫 모집글을 만들고 이 해커톤의 팀 흐름을 시작해 보세요." />
+          <EmptyState
+            icon={Users}
+            title="등록된 팀이 아직 없습니다"
+            description="Camp에서 첫 모집글을 만들거나 여기에서 바로 팀을 생성해 이 해커톤의 팀 흐름을 시작해 보세요."
+            action={
+              <Button size="sm" variant="outline" onClick={() => setInlineFormOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                첫 팀 만들기
+              </Button>
+            }
+          />
         ) : (
           teams.map((team) => {
             const teamInvites = invites.filter((invite) => invite.teamId === team.id);

@@ -10,7 +10,9 @@ import { AppDialog } from "@/components/ui/dialog";
 import { StateCard } from "@/components/ui/state-card";
 import { useLocalStorageState } from "@/hooks/use-local-storage-state";
 import { emptySubmission, storageKeys } from "@/lib/storage";
-import { Hackathon, SubmissionDraft, UserProgress } from "@/lib/types";
+import { demoLeaderboard } from "@/lib/data/hackathons";
+import { buildZeroBreakdown, upsertLeaderboardEntry } from "@/lib/leaderboard";
+import { Hackathon, LeaderboardEntry, SubmissionDraft, UserProgress } from "@/lib/types";
 import { validateSubmission } from "@/lib/submission";
 import { useHackathonProgress } from "@/hooks/use-hackathon-progress";
 import { formatFileSize } from "@/lib/utils";
@@ -44,6 +46,7 @@ function isSameProgressState(previous: UserProgress | undefined, next: Omit<User
 export function SubmissionPanel({ hackathon }: { hackathon: Hackathon }) {
   const maxUploadSize = 2 * 1024 * 1024;
   const { value: submissions, setValue: setSubmissions, ready } = useLocalStorageState<Record<string, SubmissionDraft>>(storageKeys.submissions, {});
+  const { value: leaderboard, setValue: setLeaderboard } = useLocalStorageState<LeaderboardEntry[]>(storageKeys.leaderboard, []);
   const { progress, updateProgress } = useHackathonProgress(hackathon.slug);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -259,6 +262,19 @@ export function SubmissionPanel({ hackathon }: { hackathon: Hackathon }) {
                   checklistState: progress?.checklistState ?? {},
                   updatedAt: new Date().toISOString(),
                 });
+                const fallbackEntries = demoLeaderboard.map((entry) => ({
+                  ...entry,
+                  breakdown: entry.breakdown.length > 0 ? entry.breakdown : buildZeroBreakdown(hackathon.judging),
+                }));
+                const currentEntries = leaderboard.length > 0 ? leaderboard : fallbackEntries;
+                const nextLeaderboard = upsertLeaderboardEntry(
+                  currentEntries,
+                  hackathon.slug,
+                  "로컬 빌더 팀",
+                  hackathon.judging,
+                  true,
+                );
+                setLeaderboard(nextLeaderboard);
                 setConfirmOpen(false);
               }}
             >

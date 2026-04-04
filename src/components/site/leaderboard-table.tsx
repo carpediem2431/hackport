@@ -1,11 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, Minus } from "lucide-react";
+import { ArrowDown, ArrowUp, BarChart3, Minus } from "lucide-react";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useLocalStorageState } from "@/hooks/use-local-storage-state";
+import { storageKeys } from "@/lib/storage";
 import { demoLeaderboard } from "@/lib/data/hackathons";
-import { Hackathon } from "@/lib/types";
+import { Hackathon, LeaderboardEntry } from "@/lib/types";
+import { EmptyState } from "@/components/ui/empty-state";
 import { StateCard } from "@/components/ui/state-card";
 
 const deltaLabelMap = {
@@ -16,9 +19,14 @@ const deltaLabelMap = {
 
 export function LeaderboardTable({ hackathon }: { hackathon: Hackathon }) {
   const [showNonSubmitters, setShowNonSubmitters] = useState(false);
-  const rows = useMemo(() => demoLeaderboard.filter((item) => item.hackathonSlug === hackathon.slug), [hackathon.slug]);
+  const { value: entries, ready } = useLocalStorageState<LeaderboardEntry[]>(storageKeys.leaderboard, demoLeaderboard);
+  const rows = useMemo(() => entries.filter((item) => item.hackathonSlug === hackathon.slug), [entries, hackathon.slug]);
   const submittedRows = rows.filter((row) => row.submitted);
   const nonSubmitters = rows.filter((row) => !row.submitted);
+
+  if (!ready) {
+    return <StateCard loading title="리더보드를 불러오는 중입니다" description="리더보드 데이터를 로컬 저장소에서 복원하고 있습니다." />;
+  }
 
   return (
     <Card className="bg-white">
@@ -38,7 +46,7 @@ export function LeaderboardTable({ hackathon }: { hackathon: Hackathon }) {
 
       <div className="mt-6 grid gap-4">
         {submittedRows.length === 0 ? (
-          <StateCard title="아직 리더보드 데이터가 없습니다" description="제출이 완료되면 점수 분해와 배지가 표시됩니다." />
+          <EmptyState icon={BarChart3} title="아직 리더보드 데이터가 없습니다" description="제출이 완료되면 점수 분해와 배지가 표시됩니다." />
         ) : (
           submittedRows.map((row, index) => (
             <div key={row.teamName} className="rounded-[28px] border border-border bg-[#fdfbf7] p-5">

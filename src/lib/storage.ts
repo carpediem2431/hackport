@@ -8,6 +8,7 @@ export const storageKeys = {
   teamPosts: "hackport.team-posts",
   submissions: "hackport.submissions",
   teamInvites: "hackport.team-invites",
+  leaderboard: "hackport.leaderboard",
   users: "hackport.users",
   currentUser: "hackport.current-user",
 } as const;

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -14,6 +15,16 @@ const statusLabelMap = {
   live: "진행 중",
   closed: "마감",
 } as const;
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const hackathon = getHackathonBySlug(slug);
+  if (!hackathon) return { title: "해커톤을 찾을 수 없습니다" };
+  return {
+    title: `${hackathon.title} | HackPort`,
+    description: hackathon.subtitle,
+  };
+}
 
 export default async function HackathonDetailPage({
   params,

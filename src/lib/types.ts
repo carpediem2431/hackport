@@ -85,6 +85,7 @@ export type TeamPost = {
   isOpen: boolean;
   collaborationStyle: string;
   beginnerFriendly: boolean;
+  contactUrl?: string;
   ownerId: "demo" | "local-user";
   messages: TeamMessage[];
   updatedAt: string;

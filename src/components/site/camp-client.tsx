@@ -20,7 +20,8 @@ import { demoTeamPosts, hackathons } from "@/lib/data/hackathons";
 import { getTeamFitScore } from "@/lib/camp";
 
 const emptyTeamForm = {
-  hackathonSlug: "ai-build-sprint-seoul",
+  hackathonSlug: "",
+  contactUrl: "",
   teamName: "",
   intro: "",
   lookingFor: "",
@@ -89,6 +90,9 @@ export function CampClient() {
 
   const openCreateDialog = () => {
     resetTeamForm();
+    if (selectedHackathon !== "all") {
+      setTeamForm({ ...emptyTeamForm, hackathonSlug: selectedHackathon });
+    }
     setShowFormDialog(true);
   };
 
@@ -105,6 +109,7 @@ export function CampClient() {
     const nextTeam: TeamPost = {
       id: editingId ?? `team-${Date.now()}`,
       hackathonSlug: teamForm.hackathonSlug,
+      contactUrl: teamForm.contactUrl || undefined,
       teamName: teamForm.teamName,
       intro: teamForm.intro,
       lookingFor: selectedRoles,
@@ -137,6 +142,7 @@ export function CampClient() {
     setTechStackSelectValue("");
     setTeamForm({
       hackathonSlug: team.hackathonSlug,
+      contactUrl: team.contactUrl ?? "",
       teamName: team.teamName,
       intro: team.intro,
       lookingFor: team.lookingFor.join(", "),
@@ -339,6 +345,10 @@ export function CampClient() {
           <div className="grid gap-2">
             <p className="text-sm font-medium text-white/80">해커톤 슬러그</p>
             <Input placeholder="예: ai-build-sprint-seoul" className="border-white/15 bg-white/10 text-white placeholder:text-white/40" value={teamForm.hackathonSlug} onChange={(event) => setTeamForm({ ...teamForm, hackathonSlug: event.target.value })} />
+          </div>
+          <div className="grid gap-2">
+            <p className="text-sm font-medium text-white/80">연락처 URL</p>
+            <Input placeholder="예: https://open.kakao.com/..." className="border-white/15 bg-white/10 text-white placeholder:text-white/40" value={teamForm.contactUrl} onChange={(event) => setTeamForm({ ...teamForm, contactUrl: event.target.value })} />
           </div>
           <div className="grid gap-2">
             <p className="text-sm font-medium text-white/80">팀 소개</p>

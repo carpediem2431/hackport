@@ -3,7 +3,7 @@ import { DemoSeedControls } from "@/components/site/demo-seed-controls";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-white/15 bg-[#121113]/70 py-10 text-white backdrop-blur-xl">
+    <footer className="mt-36 border-t border-white/15 bg-[#121113]/70 py-10 text-white backdrop-blur-xl">
       <div className="container-shell flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="font-display text-2xl font-semibold">HackPort</p>
