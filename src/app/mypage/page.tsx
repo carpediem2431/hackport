@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import {
   Box,
   CalendarDays,
@@ -34,11 +33,11 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Textarea } from "@/components/ui/textarea";
 import ReflectiveCard from "@/components/ReflectiveCard";
 import { useLocalStorageState } from "@/hooks/use-local-storage-state";
-import { renderReflectiveCardPng } from "@/lib/render-reflective-card-png";
+import { captureCardToDataUrl } from "@/lib/capture-reflective-card";
 import { storageKeys } from "@/lib/storage";
 import type { AuthUser } from "@/lib/types";
 import { translateCollabStyle, translateLevel, translateRole } from "@/lib/utils";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const roleOptions = [
   "Frontend",
@@ -107,45 +106,43 @@ export default function MyPage() {
   const [viewMode, setViewMode] = useState<"3d" | "2d">("3d");
   const captureCanvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const reflectiveCardRef = useRef<HTMLDivElement>(null);
   const persistedCardImage = savedCardImageReady ? savedCardImage : null;
   const [capturedFaceImage, setCapturedFaceImage] = useState<string | null>(null);
+  // Captured ReflectiveCard texture (data URL) for 3D lanyard
+  const [reflectiveCardTexture, setReflectiveCardTexture] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-
     if (!capturedFaceImage) {
-      return () => {
-        cancelled = true;
-      };
+      return;
     }
 
-    const captureReflectiveCard = async () => {
-      try {
-        const dataUrl = await renderReflectiveCardPng({
-          capturedImageSrc: capturedFaceImage,
-          user: lanyardUser,
-        });
+    // 캡처된 이미지를 그대로 저장 (ReflectiveCard는 라이브로 렌더링, 3D 텍스처는 card-texture.ts가 처리)
+    setSavedCardImage(capturedFaceImage);
+    setCapturedFaceImage(null);
+  }, [capturedFaceImage, setSavedCardImage]);
 
-        if (!cancelled) {
-          setSavedCardImage(dataUrl);
-          setCapturedFaceImage(null);
-        }
-      } catch (error) {
-        console.error("Failed to capture reflective card.", error);
+  // Capture offscreen ReflectiveCard → data URL for 3D texture
+  const captureReflectiveTexture = useCallback(async () => {
+    if (!reflectiveCardRef.current || !persistedCardImage) return;
 
-        if (!cancelled) {
-          setSavedCardImage(null);
-          setCapturedFaceImage(null);
-        }
-      }
-    };
+    // Small delay to let SVG filters render
+    await new Promise((r) => setTimeout(r, 200));
 
-    void captureReflectiveCard();
+    const dataUrl = await captureCardToDataUrl({
+      element: reflectiveCardRef.current,
+    });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [capturedFaceImage, lanyardUser, setSavedCardImage]);
+    if (dataUrl) {
+      setReflectiveCardTexture(dataUrl);
+    }
+  }, [persistedCardImage]);
+
+  useEffect(() => {
+    if (persistedCardImage) {
+      void captureReflectiveTexture();
+    }
+  }, [persistedCardImage, captureReflectiveTexture]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editDraft, setEditDraft] = useState<AuthUser | null>(null);
@@ -272,6 +269,11 @@ export default function MyPage() {
               <div className="pointer-events-none absolute inset-x-10 top-16 bottom-10 rounded-[36px] bg-[radial-gradient(circle_at_top,rgba(177,158,239,0.28),transparent_55%)] blur-3xl" />
               <ReflectiveCard
                 grayscale={0}
+                blurStrength={4}
+                metalness={0.5}
+                roughness={0.6}
+                displacementStrength={5}
+                specularConstant={0.5}
                 color="#ffffff"
                 user={lanyardUser}
                 videoRef={videoRef}
@@ -342,6 +344,7 @@ export default function MyPage() {
                             {persistedCardImage ? (
                               <LanyardProfile
                                 cardImage={persistedCardImage}
+                                reflectiveCardTexture={reflectiveCardTexture}
                                 user={lanyardUser}
                                 gravity={[0, -40, 0]}
                                 position={[0, 0, 14]}
@@ -355,27 +358,34 @@ export default function MyPage() {
                           </div>
                         </div>
                       ) : (
-                        <div className="relative overflow-visible">
+                          <div className="relative overflow-visible">
                           <div className="relative flex h-[500px] items-center justify-center sm:h-[620px]">
                             {persistedCardImage ? (
-                              <Image
-                                src={persistedCardImage}
-                                alt="프로필 카드"
-                                width={384}
-                                height={600}
-                                unoptimized
-                                style={{
-                                  width: "min(100%, 384px)",
-                                  height: "auto",
-                                  borderRadius: "20px",
-                                }}
+                              <ReflectiveCard
+                                grayscale={0}
+                                blurStrength={4}
+                                metalness={0.5}
+                                roughness={0.6}
+                                displacementStrength={5}
+                                specularConstant={0.5}
+                                color="#ffffff"
+                                className="max-w-full"
+                                style={{ maxWidth: "min(100%, 384px)" }}
+                                user={lanyardUser}
+                                capturedImageSrc={persistedCardImage}
+                                mediaTransform="scale(1.2)"
                               />
                             ) : capturedFaceImage ? (
                               <ReflectiveCard
                                 grayscale={0}
+                                blurStrength={4}
+                                metalness={0.5}
+                                roughness={0.6}
+                                displacementStrength={5}
+                                specularConstant={0.5}
                                 color="#ffffff"
                                 className="max-w-full"
-                                style={{ width: "min(100%, 384px)", height: "auto", aspectRatio: "320 / 500" }}
+                                style={{ maxWidth: "min(100%, 384px)" }}
                                 user={lanyardUser}
                                 capturedImageSrc={capturedFaceImage}
                                 mediaTransform="scale(1.2)"
@@ -673,6 +683,33 @@ export default function MyPage() {
             </div>
           </div>
         </section>
+      )}
+
+      {/* Offscreen ReflectiveCard for texture capture — same props as 2D mode */}
+      {persistedCardImage && (
+        <div
+          style={{
+            position: "fixed",
+            left: "-9999px",
+            top: "-9999px",
+            visibility: "hidden",
+            pointerEvents: "none",
+          }}
+        >
+          <ReflectiveCard
+            ref={reflectiveCardRef}
+            grayscale={0}
+            blurStrength={4}
+            metalness={0.5}
+            roughness={0.6}
+            displacementStrength={5}
+            specularConstant={0.5}
+            color="#ffffff"
+            user={lanyardUser}
+            capturedImageSrc={persistedCardImage}
+            mediaTransform="scale(1.2)"
+          />
+        </div>
       )}
     </div>
   );

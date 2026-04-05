@@ -73,20 +73,25 @@ export function createBadgeCanvas({
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.restore();
 
-    // 3) Noise overlay
+    // 3) Noise overlay (offscreen canvas to respect composite operation)
     context.save();
     context.globalCompositeOperation = "overlay";
-    const noiseData = context.createImageData(canvas.width, canvas.height);
-    for (let i = 0; i < noiseData.data.length; i += 4) {
-      const v = Math.random() * 255;
-      noiseData.data[i] = v;
-      noiseData.data[i + 1] = v;
-      noiseData.data[i + 2] = v;
-      noiseData.data[i + 3] = 25;
+    const noiseCanvas = document.createElement("canvas");
+    noiseCanvas.width = canvas.width;
+    noiseCanvas.height = canvas.height;
+    const noiseCtx = noiseCanvas.getContext("2d");
+    if (noiseCtx) {
+      const noiseData = noiseCtx.createImageData(canvas.width, canvas.height);
+      for (let i = 0; i < noiseData.data.length; i += 4) {
+        const v = Math.random() * 255;
+        noiseData.data[i] = v;
+        noiseData.data[i + 1] = v;
+        noiseData.data[i + 2] = v;
+        noiseData.data[i + 3] = 25;
+      }
+      noiseCtx.putImageData(noiseData, 0, 0);
+      context.drawImage(noiseCanvas, 0, 0);
     }
-    context.putImageData(noiseData, 0, 0);
-    context.globalCompositeOperation = "destination-over";
-    context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
     context.restore();
 
     // 4) Holographic color shift band
@@ -111,6 +116,64 @@ export function createBadgeCanvas({
     context.roundRect(3, 3, canvas.width - 6, canvas.height - 6, 24);
     context.stroke();
     context.restore();
+
+    // 6) Text overlay (semi-transparent background panels + white text)
+    if (user) {
+      // Top-left: 보안 접근 label
+      context.save();
+      context.font = "500 28px Inter, Arial, sans-serif";
+      context.fillStyle = "rgba(255,255,255,0.8)";
+      context.textAlign = "left";
+      context.fillText("🔒 보안 접근", 36, 60);
+      context.restore();
+
+      // Center: nickname + role
+      context.save();
+      context.textAlign = "center";
+
+      // Nickname (large)
+      context.font = "700 80px Inter, Arial, sans-serif";
+      context.fillStyle = "rgba(255,255,255,0.95)";
+      context.shadowColor = "rgba(0,0,0,0.5)";
+      context.shadowBlur = 12;
+      context.fillText(user.nickname, canvas.width / 2, canvas.height / 2 - 20);
+
+      // Role (medium)
+      context.font = "500 36px Inter, Arial, sans-serif";
+      context.fillStyle = "rgba(255,255,255,0.85)";
+      context.shadowBlur = 8;
+      context.fillText(user.role, canvas.width / 2, canvas.height / 2 + 30);
+      context.restore();
+
+      // Bottom-left: email label + value
+      context.save();
+      context.textAlign = "left";
+      context.font = "400 24px Inter, Arial, sans-serif";
+      context.fillStyle = "rgba(255,255,255,0.5)";
+      context.fillText("이메일", 36, canvas.height - 80);
+      context.font = "500 32px Inter, Arial, sans-serif";
+      context.fillStyle = "rgba(255,255,255,0.9)";
+      context.shadowColor = "rgba(0,0,0,0.4)";
+      context.shadowBlur = 6;
+      context.fillText(user.email, 36, canvas.height - 40);
+      context.restore();
+
+      // Top-right: heartbeat icon
+      context.save();
+      context.font = "28px sans-serif";
+      context.fillStyle = "rgba(255,255,255,0.6)";
+      context.textAlign = "right";
+      context.fillText("〰️", canvas.width - 36, 60);
+      context.restore();
+
+      // Bottom-right: fingerprint icon
+      context.save();
+      context.font = "32px sans-serif";
+      context.fillStyle = "rgba(255,255,255,0.7)";
+      context.textAlign = "right";
+      context.fillText("👆", canvas.width - 36, canvas.height - 40);
+      context.restore();
+    }
   } else {
     // 이미지가 없을 때의 Fallback
     const fallback = context.createLinearGradient(0, 0, canvas.width, canvas.height);

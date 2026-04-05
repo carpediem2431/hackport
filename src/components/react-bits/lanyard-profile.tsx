@@ -25,6 +25,8 @@ interface LanyardProfileProps {
   transparent?: boolean;
   profileImage?: string | null;
   cardImage?: string | null;
+  /** Pre-captured ReflectiveCard texture (data URL) — takes priority over cardImage */
+  reflectiveCardTexture?: string | null;
   user?: {
     nickname: string;
     role: string;
@@ -42,6 +44,7 @@ export default function LanyardProfile({
   transparent = true,
   profileImage = null,
   cardImage = null,
+  reflectiveCardTexture = null,
   user = null,
 }: LanyardProfileProps) {
   const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== "undefined" && window.innerWidth < 768);
@@ -92,7 +95,7 @@ export default function LanyardProfile({
       >
         <ambientLight intensity={Math.PI} />
         <Physics gravity={gravity} timeStep={isMobile ? 1 / 30 : 1 / 60}>
-          <Band isMobile={isMobile} profileImage={profileImage} cardImage={cardImage} user={user} />
+          <Band isMobile={isMobile} profileImage={profileImage} cardImage={cardImage} reflectiveCardTexture={reflectiveCardTexture} user={user} />
         </Physics>
         <Environment blur={0.75}>
           <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
@@ -135,27 +138,6 @@ function createBadgeTexture({
   return texture;
 }
 
-function createTextureFromRenderedCard(image: HTMLImageElement) {
-  const canvas = document.createElement("canvas");
-  canvas.width = image.naturalWidth || image.width;
-  canvas.height = image.naturalHeight || image.height;
-  const context = canvas.getContext("2d");
-
-  if (context) {
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.flipY = false;
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.repeat.x = -1;
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.minFilter = THREE.LinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-  texture.generateMipmaps = false;
-  texture.needsUpdate = true;
-  return texture;
-}
 useGLTF.preload("/card.glb");
 useTexture.preload("/lanyard.png");
 
@@ -165,6 +147,7 @@ function Band({
   isMobile = false,
   profileImage = null,
   cardImage = null,
+  reflectiveCardTexture = null,
   user = null,
 }: {
   maxSpeed?: number;
@@ -172,6 +155,7 @@ function Band({
   isMobile?: boolean;
   profileImage?: string | null;
   cardImage?: string | null;
+  reflectiveCardTexture?: string | null;
   user?: {
     nickname: string;
     role: string;
@@ -291,6 +275,57 @@ function Band({
     let cancelled = false;
 
     const syncTextures = async () => {
+      // 0) PRIORITY: Use pre-captured ReflectiveCard texture (matches 2D exactly)
+      if (reflectiveCardTexture) {
+        const img = await loadBadgeImage(reflectiveCardTexture);
+        if (img && !cancelled) {
+          // Front: ReflectiveCard capture as-is
+          const frontCanvas = document.createElement("canvas");
+          frontCanvas.width = img.width;
+          frontCanvas.height = img.height;
+          const frontCtx = frontCanvas.getContext("2d");
+          if (frontCtx) {
+            frontCtx.drawImage(img, 0, 0);
+          }
+
+          // Back: dimmed + mirrored version
+          const backCanvas = document.createElement("canvas");
+          backCanvas.width = img.width;
+          backCanvas.height = img.height;
+          const backCtx = backCanvas.getContext("2d");
+          if (backCtx) {
+            backCtx.translate(backCanvas.width, 0);
+            backCtx.scale(-1, 1);
+            backCtx.drawImage(img, 0, 0);
+            // Dim overlay
+            backCtx.setTransform(1, 0, 0, 1, 0, 0);
+            backCtx.fillStyle = "rgba(0,0,0,0.15)";
+            backCtx.fillRect(0, 0, backCanvas.width, backCanvas.height);
+          }
+
+          const makeTex = (canvas: HTMLCanvasElement) => {
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.flipY = false;
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.repeat.x = -1;
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.minFilter = THREE.LinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            tex.generateMipmaps = false;
+            tex.needsUpdate = true;
+            return tex;
+          };
+
+          const nextFront = makeTex(frontCanvas);
+          const nextBack = makeTex(backCanvas);
+
+          setFrontTexture((prev) => { prev?.dispose(); return nextFront; });
+          setBackTexture((prev) => { prev?.dispose(); return nextBack; });
+        }
+        return;
+      }
+
+      // 1) Start with fallback (no image) textures with text overlay
       const fallbackFrontTexture = createBadgeTexture({ image: null, user: badgeUser, side: "front" });
       const fallbackBackTexture = createBadgeTexture({ image: null, user: badgeUser, side: "back" });
 
@@ -303,11 +338,31 @@ function Band({
         return fallbackBackTexture;
       });
 
-      const renderedCard = await loadBadgeImage(cardImage);
+      // 2) Try cardImage first (captured face image) - use createBadgeCanvas for text/effects
+      const cardImg = await loadBadgeImage(cardImage);
 
-      if (renderedCard) {
-        const nextFrontTexture = createTextureFromRenderedCard(renderedCard);
-        const nextBackTexture = createTextureFromRenderedCard(renderedCard);
+      if (cardImg) {
+        const frontCanvas = createBadgeCanvas({ image: cardImg, user: badgeUser, side: "front" });
+        const backCanvas = createBadgeCanvas({ image: cardImg, user: badgeUser, side: "back" });
+        const nextFrontTexture = new THREE.CanvasTexture(frontCanvas);
+        nextFrontTexture.flipY = false;
+        nextFrontTexture.wrapS = THREE.RepeatWrapping;
+        nextFrontTexture.repeat.x = -1;
+        nextFrontTexture.colorSpace = THREE.SRGBColorSpace;
+        nextFrontTexture.minFilter = THREE.LinearFilter;
+        nextFrontTexture.magFilter = THREE.LinearFilter;
+        nextFrontTexture.generateMipmaps = false;
+        nextFrontTexture.needsUpdate = true;
+
+        const nextBackTexture = new THREE.CanvasTexture(backCanvas);
+        nextBackTexture.flipY = false;
+        nextBackTexture.wrapS = THREE.RepeatWrapping;
+        nextBackTexture.repeat.x = -1;
+        nextBackTexture.colorSpace = THREE.SRGBColorSpace;
+        nextBackTexture.minFilter = THREE.LinearFilter;
+        nextBackTexture.magFilter = THREE.LinearFilter;
+        nextBackTexture.generateMipmaps = false;
+        nextBackTexture.needsUpdate = true;
 
         if (cancelled) {
           nextFrontTexture.dispose();
@@ -326,6 +381,7 @@ function Band({
         return;
       }
 
+      // 3) Fallback to profileImage
       const image = await loadBadgeImage(profileImage);
       const nextFrontTexture = createBadgeTexture({ image, user: badgeUser, side: "front" });
       const nextBackTexture = createBadgeTexture({ image, user: badgeUser, side: "back" });
@@ -351,7 +407,7 @@ function Band({
     return () => {
       cancelled = true;
     };
-  }, [badgeUser, cardImage, profileImage]);
+  }, [badgeUser, cardImage, profileImage, reflectiveCardTexture]);
 
   useEffect(() => {
     return () => {
@@ -438,20 +494,26 @@ function Band({
             }}
           >
             <mesh geometry={nodes.card.geometry}>
-              <meshStandardMaterial
+              <meshPhysicalMaterial
                 map={frontTexture}
                 map-anisotropy={16}
-                roughness={0.35}
-                metalness={0.15}
+                roughness={0.1}
+                metalness={0.3}
+                reflectivity={0.8}
+                clearcoat={1}
+                clearcoatRoughness={0.1}
                 envMapIntensity={1.5}
               />
             </mesh>
             <mesh geometry={nodes.card.geometry} rotation={[0, Math.PI, 0]}>
-              <meshStandardMaterial
+              <meshPhysicalMaterial
                 map={backTexture}
                 map-anisotropy={16}
-                roughness={1}
-                metalness={0}
+                roughness={0.3}
+                metalness={0.1}
+                clearcoat={0.5}
+                clearcoatRoughness={0.2}
+                envMapIntensity={0.8}
               />
             </mesh>
             <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
