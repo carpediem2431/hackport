@@ -14,7 +14,7 @@ export function SiteFooter() {
         <div className="flex flex-col gap-4 md:items-end">
           <div className="flex flex-wrap gap-6 text-sm text-white/70">
             <Link href="/hackathons">해커톤</Link>
-            <Link href="/camp">Camp</Link>
+            <Link href="/camp">캠프</Link>
             <Link href="/rankings">랭킹</Link>
           </div>
           <DemoSeedControls />

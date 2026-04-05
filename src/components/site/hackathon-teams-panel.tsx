@@ -118,7 +118,7 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
         </Button>
         <Link href={`/camp?hackathon=${hackathon.slug}`}>
           <Button size="sm">
-            Camp에서 보기
+            캠프에서 보기
             <ArrowUpRight className="ml-2 h-4 w-4" />
           </Button>
         </Link>
@@ -146,7 +146,7 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
           <EmptyState
             icon={Users}
             title="등록된 팀이 아직 없습니다"
-            description="Camp에서 첫 모집글을 만들거나 여기에서 바로 팀을 생성해 이 해커톤의 팀 흐름을 시작해 보세요."
+            description="캠프에서 첫 모집글을 만들거나 여기에서 바로 팀을 생성해 이 해커톤의 팀 흐름을 시작해 보세요."
             action={
               <Button size="sm" variant="outline" onClick={() => setInlineFormOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -243,11 +243,11 @@ export function HackathonTeamsPanel({ hackathon }: { hackathon: Hackathon }) {
         open={guideOpen}
         onOpenChange={setGuideOpen}
         title="팀 가이드"
-        description="Camp와 상세 페이지를 오가며 팀 모집과 초대 상태를 같은 로컬 데이터로 관리합니다."
+        description="캠프와 상세 페이지를 오가며 팀 모집과 초대 상태를 같은 로컬 데이터로 관리합니다."
       >
         <div className="space-y-4 text-sm leading-6 text-white/75">
           <p>1. 상세 페이지에서 모집중 팀과 초대 상태를 빠르게 확인합니다.</p>
-          <p>2. Camp에서 해커톤별 필터로 팀을 관리하고 모집글을 수정하거나 닫습니다.</p>
+          <p>2. 캠프에서 해커톤별 필터로 팀을 관리하고 모집글을 수정하거나 닫습니다.</p>
           <p>3. 초대 요청을 수락하면 Copilot 준비도에 팀 구성 완료가 바로 반영됩니다.</p>
         </div>
       </AppDialog>

@@ -15,7 +15,7 @@ import type { AuthUser } from "@/lib/types";
 const navigation = [
   { href: "/", label: "홈" },
   { href: "/hackathons", label: "해커톤" },
-  { href: "/camp", label: "Camp" },
+  { href: "/camp", label: "캠프" },
   { href: "/rankings", label: "랭킹" },
   { href: "/mypage", label: "마이페이지" },
 ];
@@ -44,7 +44,7 @@ export function SiteHeader() {
               alt="HackPort"
               width={187}
               height={29}
-              className="h-auto w-[132px] brightness-0 invert sm:w-[148px]"
+              className="h-auto w-[132px] sm:w-[148px]"
               priority
             />
           </Link>

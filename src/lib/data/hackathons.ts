@@ -190,7 +190,7 @@ export const demoTeamPosts: TeamPost[] = [
       {
         id: "msg-1",
         sender: "team",
-        body: "로컬 팀 데모입니다. Camp에서 메시지와 모집 상태를 테스트해 보세요.",
+        body: "로컬 팀 데모입니다. 캠프에서 메시지와 모집 상태를 테스트해 보세요.",
         createdAt: "2026-04-02T09:10:00.000Z",
       },
     ],

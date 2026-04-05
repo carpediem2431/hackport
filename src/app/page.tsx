@@ -39,15 +39,14 @@ export default function HomePage() {
         mouseReact={false}
       />
       <section className="relative z-10 overflow-hidden">
-        <div className="container-shell relative flex min-h-[100svh] flex-col justify-center py-20 sm:py-28">
+        <div className="container-shell relative flex min-h-[100svh] flex-col items-center justify-center py-20 sm:py-28">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)]">
-            <div>
-              <AnimatedText className="max-w-4xl font-display text-5xl font-semibold leading-[1.14] tracking-tight text-balance text-white sm:text-6xl lg:text-7xl">
-                해커톤의 시작부터 제출과 결과 해석까지, 한 흐름으로 연결합니다.
+            <div className="flex flex-col items-center text-center">
+              <AnimatedText className="max-w-2xl font-display text-3xl font-semibold leading-[1.25] tracking-tight text-balance text-white sm:text-4xl lg:text-5xl">
+                여러분의 해커톤 여정을 시작하세요.
               </AnimatedText>
 
-
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link href="/hackathons">
                   <Button size="lg">
                     해커톤 보러가기
@@ -82,8 +81,8 @@ export default function HomePage() {
         <div className="grid gap-5 lg:grid-cols-4">
           {valueCards.map((item, index) => (
             <FadeIn key={item.title} delay={index * 0.05}>
-              <div className="h-full rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-                <item.icon className="h-7 w-7 text-brand-strong" />
+              <div className="h-full rounded-[20px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                <item.icon className="h-7 w-7 text-black" />
                 <h3 className="mt-5 font-display text-2xl font-semibold text-white">{item.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-white/80">{item.body}</p>
               </div>
@@ -108,8 +107,8 @@ export default function HomePage() {
             "제출 가드로 초안을 저장하고 체크리스트를 통과한 뒤 안전하게 제출",
           ].map((item, index) => (
             <FadeIn key={item} delay={index * 0.1}>
-              <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-[0_16px_40px_rgba(82,39,255,0.08)] backdrop-blur-xl">
-                <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-soft font-semibold text-brand-strong">
+              <div className="rounded-[20px] border border-white/10 bg-white/5 p-6 shadow-[0_16px_40px_rgba(82,39,255,0.08)] backdrop-blur-xl">
+                <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black font-semibold text-white">
                   0{index + 1}
                 </div>
                 <p className="text-pretty text-base leading-7 text-white/80">{item}</p>
