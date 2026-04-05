@@ -21,7 +21,7 @@ export function RankingsClient() {
       <Card className="glass-panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <CardTitle>글로벌 랭킹</CardTitle>
-          <CardDescription className="mt-2">최근 7일, 30일, 전체 기간 기준으로 순위, 닉네임, 포인트를 비교합니다.</CardDescription>
+          <CardDescription className="mt-2">최근 7일, 30일, 전체 기간 기준으로 순위, 팀 이름, 포인트를 비교합니다.</CardDescription>
         </div>
         <div className="flex gap-2">
           {(["7d", "30d", "all"] as const).map((item) => (
@@ -43,7 +43,7 @@ export function RankingsClient() {
             <thead className="bg-[#f7f3eb] text-muted">
               <tr>
                 <th className="px-6 py-4 font-medium">순위</th>
-                <th className="px-6 py-4 font-medium">닉네임</th>
+                <th className="px-6 py-4 font-medium">팀 이름</th>
                 <th className="px-6 py-4 font-medium">포인트</th>
                 <th className="px-6 py-4 font-medium">배지</th>
                 <th className="px-6 py-4 font-medium">추이</th>

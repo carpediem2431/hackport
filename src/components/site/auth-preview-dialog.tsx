@@ -6,6 +6,7 @@ import { AppDialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { PROFILE_ROLE_OPTIONS, PROFILE_TECH_STACK_OPTIONS } from "@/lib/profile-options";
 import { loadStorage, saveStorage, storageKeys } from "@/lib/storage";
 import { AuthUser } from "@/lib/types";
@@ -38,6 +39,7 @@ export function AuthPreviewDialog({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState("");
+  const [intro, setIntro] = useState("");
   const [role, setRole] = useState("");
   const [techStacks, setTechStacks] = useState<string[]>([]);
   const [collaborationStyle, setCollaborationStyle] = useState("");
@@ -56,6 +58,7 @@ export function AuthPreviewDialog({
     setEmail("");
     setPassword("");
     setNickname("");
+    setIntro("");
     setRole("");
     setTechStacks([]);
     setCollaborationStyle("");
@@ -115,6 +118,7 @@ export function AuthPreviewDialog({
       email: email.trim(),
       password,
       nickname: nickname.trim(),
+      intro: intro.trim(),
       role: role.trim(),
       techStacks,
       collaborationStyle: collaborationStyle.trim(),
@@ -204,6 +208,16 @@ export function AuthPreviewDialog({
                 placeholder="홍길동"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-3">
+              <span className="text-sm text-white/72">소개</span>
+              <Textarea
+                className="min-h-28 rounded-[20px] border-white/10 bg-white/6 text-white placeholder:text-white/30"
+                placeholder="어떤 역할을 맡고 싶은지, 어떤 팀원을 찾는지 자유롭게 소개해 주세요"
+                value={intro}
+                onChange={(e) => setIntro(e.target.value)}
               />
             </div>
 

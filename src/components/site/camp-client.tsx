@@ -273,7 +273,7 @@ export function CampClient() {
                     <div className="max-w-2xl">
                       <div className="mb-3 flex flex-wrap gap-2">
                         <Badge>{hackathons.find((item) => item.slug === team.hackathonSlug)?.title ?? team.hackathonSlug}</Badge>
-                        <Badge>{team.isOpen ? "모집 중" : "모집 마감"}</Badge>
+                        <Badge className={team.isOpen ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>{team.isOpen ? "모집 중" : "모집 마감"}</Badge>
                         {team.beginnerFriendly ? <Badge>입문자 환영</Badge> : null}
                         {team.ownerId === "local-user" ? <Badge className="bg-brand-soft text-brand-strong">내 모집글</Badge> : null}
                       </div>

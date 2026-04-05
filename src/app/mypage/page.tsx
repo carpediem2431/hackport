@@ -34,7 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import ReflectiveCard from "@/components/ReflectiveCard";
 import { useLocalStorageState } from "@/hooks/use-local-storage-state";
 import { captureCardToDataUrl } from "@/lib/capture-reflective-card";
-import { storageKeys } from "@/lib/storage";
+import { loadStorage, saveStorage, storageKeys } from "@/lib/storage";
 import type { AuthUser } from "@/lib/types";
 import { translateCollabStyle, translateLevel, translateRole } from "@/lib/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -80,6 +80,10 @@ function formatCreatedAt(createdAt: string) {
   }).format(date);
 }
 
+function buildDefaultIntro(user: Pick<AuthUser, "nickname" | "role" | "collaborationStyle">) {
+  return `${user.nickname}님은 ${translateRole(user.role)} 역할로 해커톤 팀에 참여하며 ${translateCollabStyle(user.collaborationStyle)} 협업을 선호합니다.`;
+}
+
 export default function MyPage() {
   const { value: currentUser, setValue: setCurrentUser, ready: currentUserReady } = useLocalStorageState<AuthUser | null>(
     storageKeys.currentUser,
@@ -103,7 +107,7 @@ export default function MyPage() {
     email: currentUser?.email ?? "",
   }), [currentUser?.email, currentUser?.nickname, translatedLevel, translatedRole]);
 
-  const [viewMode, setViewMode] = useState<"3d" | "2d">("3d");
+  const [viewMode, setViewMode] = useState<"3d" | "2d">("2d");
   const captureCanvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const reflectiveCardRef = useRef<HTMLDivElement>(null);
@@ -119,7 +123,6 @@ export default function MyPage() {
 
     // 캡처된 이미지를 그대로 저장 (ReflectiveCard는 라이브로 렌더링, 3D 텍스처는 card-texture.ts가 처리)
     setSavedCardImage(capturedFaceImage);
-    setCapturedFaceImage(null);
   }, [capturedFaceImage, setSavedCardImage]);
 
   // Capture offscreen ReflectiveCard → data URL for 3D texture
@@ -149,7 +152,7 @@ export default function MyPage() {
 
   const startEditing = () => {
     if (!currentUser) return;
-    setEditDraft({ ...currentUser });
+    setEditDraft({ ...currentUser, intro: currentUser.intro ?? "" });
     setIsEditing(true);
   };
 
@@ -160,7 +163,15 @@ export default function MyPage() {
 
   const saveProfile = () => {
     if (!editDraft) return;
-    setCurrentUser(editDraft);
+    const nextUser = { ...editDraft, intro: editDraft.intro.trim() };
+    const users = loadStorage<AuthUser[]>(storageKeys.users, []);
+    const hasStoredUser = users.some((user) => user.email === currentUser?.email);
+    const nextUsers = hasStoredUser
+      ? users.map((user) => (user.email === currentUser?.email ? nextUser : user))
+      : [...users, nextUser];
+
+    saveStorage(storageKeys.users, nextUsers);
+    setCurrentUser(nextUser);
     setIsEditing(false);
     setEditDraft(null);
   };
@@ -204,7 +215,7 @@ export default function MyPage() {
   }
 
   const translatedCollabStyle = translateCollabStyle(currentUser.collaborationStyle);
-  const intro = `${currentUser.nickname}님은 ${translatedRole} 역할로 해커톤 팀에 참여하며 ${translatedCollabStyle} 협업을 선호합니다.`;
+  const intro = currentUser.intro?.trim() || buildDefaultIntro(currentUser);
   const memberSince = formatCreatedAt(currentUser.createdAt);
   const highlights = [
     { icon: UserRound, label: "역할", value: translatedRole },
@@ -246,7 +257,7 @@ export default function MyPage() {
       <SectionHeading
         eyebrow="내 프로필"
         title="마이페이지"
-        description={`${currentUser.nickname}님의 프로필 카드와 핵심 정보를 한 화면에서 확인할 수 있도록 구성했어요.`}
+        description={`${currentUser.nickname}님의 프로필 카드와 핵심 정보를 확인하고, 수정할 수 있습니다.`}
         className="max-w-3xl"
         descriptionClassName="max-w-xl text-sm text-muted sm:text-base"
       />
@@ -350,8 +361,8 @@ export default function MyPage() {
                                 reflectiveCardTexture={reflectiveCardTexture}
                                 user={lanyardUser}
                                 gravity={[0, -40, 0]}
-                                position={[0, 0, 14]}
-                                fov={20}
+                                position={[0, 0, 20]}
+                                fov={18}
                               />
                             ) : (
                               <div className="flex h-[500px] items-center justify-center rounded-[32px] border border-white/70 bg-white/80 px-6 text-center text-sm text-muted shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:h-[620px]">
@@ -419,13 +430,6 @@ export default function MyPage() {
             </div>
 
             <div className="order-1 lg:order-2">
-              <div className="mb-6 max-w-2xl">
-                <h3 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                  {currentUser.nickname}님의 개발자 아이덴티티를 한 장의 랜야드로 보여줍니다.
-                </h3>
-
-              </div>
-
               <Card className="rounded-[28px] border-white/70 bg-white/88 p-0 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-sm">
                 <div className="flex items-start justify-between border-b border-border/80 px-6 py-5">
                   <div>
@@ -617,9 +621,10 @@ export default function MyPage() {
                       <section>
                         <p className="text-sm font-semibold text-foreground">소개</p>
                         <Textarea
-                          readOnly
-                          aria-label="자기소개"
-                          value={`${editDraft.nickname}님은 ${translateRole(editDraft.role)} 역할로 해커톤 팀에 참여하며 ${translateCollabStyle(editDraft.collaborationStyle)} 협업을 선호합니다.`}
+                          aria-label="자기소개 수정"
+                          value={editDraft.intro}
+                          onChange={(e) => updateDraft("intro", e.target.value)}
+                          placeholder={buildDefaultIntro(editDraft)}
                           className="mt-3 min-h-28 resize-none rounded-[20px] bg-[#fbfbfd] text-sm leading-6 text-muted"
                         />
                       </section>

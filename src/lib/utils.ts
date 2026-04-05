@@ -38,16 +38,16 @@ export function translateLevel(level: string) {
 }
 
 const roleMap: Record<string, string> = {
-  Frontend: "프론트엔드",
-  Backend: "백엔드",
-  Fullstack: "풀스택",
-  Designer: "디자이너",
+  Frontend: "Frontend Developer",
+  Backend: "Backend Developer",
+  Fullstack: "Fullstack Developer",
+  Designer: "Designer",
   PM: "PM",
-  DevOps: "DevOps",
-  "Data Scientist": "데이터 사이언티스트",
-  "ML Engineer": "ML 엔지니어",
+  DevOps: "Developer DevOps",
+  "Data Scientist": "Data Scientist",
+  "ML Engineer": "ML Engineer",
   QA: "QA",
-  Mobile: "모바일",
+  Mobile: "Mobile Developer",
 }
 
 export function translateRole(role: string) {

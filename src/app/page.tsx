@@ -1,8 +1,8 @@
 ﻿import Link from "next/link";
 import { ArrowRight, Layers3, ShieldCheck, Trophy, Users2 } from "lucide-react";
-import { AnimatedText } from "@/components/react-bits/animated-text";
 import { FadeIn } from "@/components/react-bits/fade-in";
 import Iridescence from "@/components/react-bits/iridescence";
+import { TextType } from "@/components/react-bits/text-type";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/ui/section-heading";
 
@@ -42,14 +42,20 @@ export default function HomePage() {
         <div className="container-shell relative flex min-h-[100svh] flex-col items-center justify-center py-20 sm:py-28">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)]">
             <div className="flex flex-col items-center text-center">
-              <AnimatedText className="max-w-2xl font-display text-3xl font-semibold leading-[1.25] tracking-tight text-balance text-white sm:text-4xl lg:text-5xl">
-                여러분의 해커톤 여정을 시작하세요.
-              </AnimatedText>
+              <TextType
+                as="h1"
+                text={"여러분의 해커톤\n여정을 시작하세요."}
+                loop={false}
+                typingSpeed={100}
+                initialDelay={150}
+                showCursor={false}
+                className="max-w-2xl font-display text-3xl font-semibold leading-[1.25] tracking-tight text-balance text-white sm:text-4xl lg:text-5xl"
+              />
 
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link href="/hackathons">
                   <Button size="lg">
-                    해커톤 보러가기
+                    가입하기
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
@@ -62,15 +68,7 @@ export default function HomePage() {
                     팀 찾기
                   </Button>
                 </Link>
-                <Link href="/rankings">
-                  <Button
-                    size="lg"
-                    variant="secondary"
-                    className="border-brand-soft/70 bg-brand-soft/55 text-white shadow-[0_14px_28px_rgba(82,39,255,0.12)] hover:border-brand-soft hover:bg-brand-soft/70"
-                  >
-                    랭킹 보기
-                  </Button>
-                </Link>
+
               </div>
             </div>
           </div>
@@ -94,8 +92,8 @@ export default function HomePage() {
       <section className="container-shell relative z-10 py-20">
         <SectionHeading
           eyebrow="여정"
-          title="심사에서 바로 보여줄 수 있는 연결된 UX"
-          description="탐색, 팀 구성, 제출, 결과 확인이 서로 끊기지 않도록 화면과 상태를 연결했습니다."
+          title="해커톤 탐색 부터 팀 참여까지 쉽게"
+          description=""
           eyebrowClassName="text-white/60"
           titleClassName="text-white"
           descriptionClassName="text-white/75"

@@ -16,7 +16,7 @@ export const storageKeys = {
 
 export const defaultProfile: CampProfile = {
   nickname: "로컬 빌더",
-  role: "프론트엔드",
+  role: "Frontend Developer",
   techStacks: ["Next.js", "TypeScript"],
   collaborationStyle: "빠른 피드백",
   level: "intermediate",

@@ -149,6 +149,7 @@ export type AuthUser = {
   email: string;
   password: string;
   nickname: string;
+  intro: string;
   role: string;
   techStacks: string[];
   collaborationStyle: string;
