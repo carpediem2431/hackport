@@ -269,11 +269,11 @@ export default function MyPage() {
               <div className="pointer-events-none absolute inset-x-10 top-16 bottom-10 rounded-[36px] bg-[radial-gradient(circle_at_top,rgba(177,158,239,0.28),transparent_55%)] blur-3xl" />
               <ReflectiveCard
                 grayscale={0}
-                blurStrength={4}
-                metalness={0.5}
-                roughness={0.6}
-                displacementStrength={5}
-                specularConstant={0.5}
+                blurStrength={2}
+                metalness={0.3}
+                roughness={0.5}
+                displacementStrength={1}
+                specularConstant={0.3}
                 color="#ffffff"
                 user={lanyardUser}
                 videoRef={videoRef}
@@ -363,11 +363,11 @@ export default function MyPage() {
                             {persistedCardImage ? (
                               <ReflectiveCard
                                 grayscale={0}
-                                blurStrength={4}
-                                metalness={0.5}
-                                roughness={0.6}
-                                displacementStrength={5}
-                                specularConstant={0.5}
+                                blurStrength={2}
+                                metalness={0.3}
+                                roughness={0.5}
+                                displacementStrength={1}
+                                specularConstant={0.3}
                                 color="#ffffff"
                                 className="max-w-full"
                                 style={{ maxWidth: "min(100%, 384px)" }}
@@ -378,11 +378,11 @@ export default function MyPage() {
                             ) : capturedFaceImage ? (
                               <ReflectiveCard
                                 grayscale={0}
-                                blurStrength={4}
-                                metalness={0.5}
-                                roughness={0.6}
-                                displacementStrength={5}
-                                specularConstant={0.5}
+                                blurStrength={2}
+                                metalness={0.3}
+                                roughness={0.5}
+                                displacementStrength={1}
+                                specularConstant={0.3}
                                 color="#ffffff"
                                 className="max-w-full"
                                 style={{ maxWidth: "min(100%, 384px)" }}
@@ -699,11 +699,11 @@ export default function MyPage() {
           <ReflectiveCard
             ref={reflectiveCardRef}
             grayscale={0}
-            blurStrength={4}
-            metalness={0.5}
-            roughness={0.6}
-            displacementStrength={5}
-            specularConstant={0.5}
+            blurStrength={2}
+            metalness={0.3}
+            roughness={0.5}
+            displacementStrength={1}
+            specularConstant={0.3}
             color="#ffffff"
             user={lanyardUser}
             capturedImageSrc={persistedCardImage}
