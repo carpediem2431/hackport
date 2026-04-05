@@ -33,7 +33,7 @@
   height: 100%;
   object-fit: cover;
   filter: grayscale(var(--grayscale)) contrast(calc(1 + (var(--metalness) * 0.03))) brightness(calc(0.9 + ((1 - var(--roughness)) * 0.04))) blur(calc(var(--blur-strength) * 0.9));
-  transform: scale(1.14);
+  transform: scale(0.1);
   transition: opacity 240ms ease;
 }
 

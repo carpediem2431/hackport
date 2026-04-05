@@ -268,12 +268,15 @@ export default function MyPage() {
             <div className="relative flex justify-center">
               <div className="pointer-events-none absolute inset-x-10 top-16 bottom-10 rounded-[36px] bg-[radial-gradient(circle_at_top,rgba(177,158,239,0.28),transparent_55%)] blur-3xl" />
               <ReflectiveCard
-                grayscale={0}
-                blurStrength={2}
-                metalness={0.3}
-                roughness={0.5}
-                displacementStrength={1}
-                specularConstant={0.3}
+                overlayColor="rgba(0, 0, 0, 0.2)"
+                blurStrength={12}
+                glassDistortion={30}
+                metalness={1}
+                roughness={0.75}
+                displacementStrength={20}
+                noiseScale={1}
+                specularConstant={5}
+                grayscale={0.15}
                 color="#ffffff"
                 user={lanyardUser}
                 videoRef={videoRef}
@@ -362,33 +365,37 @@ export default function MyPage() {
                           <div className="relative flex h-[500px] items-center justify-center sm:h-[620px]">
                             {persistedCardImage ? (
                               <ReflectiveCard
-                                grayscale={0}
-                                blurStrength={2}
-                                metalness={0.3}
-                                roughness={0.5}
-                                displacementStrength={1}
-                                specularConstant={0.3}
+                                overlayColor="rgba(0, 0, 0, 0.2)"
+                                blurStrength={12}
+                                glassDistortion={30}
+                                metalness={1}
+                                roughness={0.75}
+                                displacementStrength={20}
+                                noiseScale={1}
+                                specularConstant={5}
+                                grayscale={0.15}
                                 color="#ffffff"
                                 className="max-w-full"
                                 style={{ maxWidth: "min(100%, 384px)" }}
                                 user={lanyardUser}
                                 capturedImageSrc={persistedCardImage}
-                                mediaTransform="scale(1.2)"
                               />
                             ) : capturedFaceImage ? (
                               <ReflectiveCard
-                                grayscale={0}
-                                blurStrength={2}
-                                metalness={0.3}
-                                roughness={0.5}
-                                displacementStrength={1}
-                                specularConstant={0.3}
+                                overlayColor="rgba(0, 0, 0, 0.2)"
+                                blurStrength={12}
+                                glassDistortion={30}
+                                metalness={1}
+                                roughness={0.75}
+                                displacementStrength={20}
+                                noiseScale={1}
+                                specularConstant={5}
+                                grayscale={0.15}
                                 color="#ffffff"
                                 className="max-w-full"
                                 style={{ maxWidth: "min(100%, 384px)" }}
                                 user={lanyardUser}
                                 capturedImageSrc={capturedFaceImage}
-                                mediaTransform="scale(1.2)"
                               />
                             ) : null}
                           </div>
@@ -698,16 +705,18 @@ export default function MyPage() {
         >
           <ReflectiveCard
             ref={reflectiveCardRef}
-            grayscale={0}
-            blurStrength={2}
-            metalness={0.3}
-            roughness={0.5}
-            displacementStrength={1}
-            specularConstant={0.3}
+            overlayColor="rgba(0, 0, 0, 0.2)"
+            blurStrength={12}
+            glassDistortion={30}
+            metalness={1}
+            roughness={0.75}
+            displacementStrength={20}
+            noiseScale={1}
+            specularConstant={5}
+            grayscale={0.15}
             color="#ffffff"
             user={lanyardUser}
             capturedImageSrc={persistedCardImage}
-            mediaTransform="scale(1.2)"
           />
         </div>
       )}

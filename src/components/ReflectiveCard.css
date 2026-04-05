@@ -27,10 +27,10 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.2) scaleX(-1);
+  transform-origin: center;
 
   filter: saturate(var(--saturation, 0)) contrast(120%) brightness(110%) blur(var(--blur-strength, 12px))
-    url(#metallic-displacement);
+    var(--svg-filter, url(#metallic-displacement));
 
   z-index: 0;
   opacity: 0.9;

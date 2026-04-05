@@ -164,6 +164,18 @@ function Band({
     email: string;
   } | null;
 }) {
+  const CARD_PIXEL_WIDTH = 320;
+  const CARD_PIXEL_HEIGHT = 500;
+  const cardAspectRatio = CARD_PIXEL_WIDTH / CARD_PIXEL_HEIGHT;
+  const cardVisualScale = 0.45;
+  const cardDragPlaneHeight = 2.25;
+  const cardDragPlaneWidth = cardDragPlaneHeight * cardAspectRatio;
+  const cardHalfWidth = (cardDragPlaneWidth * cardVisualScale) / 2;
+  const cardHalfHeight = (cardDragPlaneHeight * cardVisualScale) / 2;
+  const cardColliderArgs: [number, number, number] = [cardHalfWidth, cardHalfHeight, 0.01];
+  const cardJointAnchor: [number, number, number] = [0, cardHalfHeight + 0.065, 0];
+  const cardVisualOffset: [number, number, number] = [0, -(cardHalfHeight + 0.015), -0.05];
+  const cardDragPlaneSize: [number, number] = [cardDragPlaneWidth, cardDragPlaneHeight];
   const band = useRef<THREE.Mesh>(null);
   const fixed = useRef<RapierRigidBody>(null);
   const j1 = useRef<RapierRigidBody>(null);
@@ -171,7 +183,6 @@ function Band({
   const j3 = useRef<RapierRigidBody>(null);
   const card = useRef<RapierRigidBody>(null);
   const frontTextureRef = useRef<THREE.Texture | null>(null);
-  const backTextureRef = useRef<THREE.Texture | null>(null);
 
   const vec = new THREE.Vector3();
   const ang = new THREE.Vector3();
@@ -230,13 +241,7 @@ function Band({
   const [frontTexture, setFrontTexture] = useState<THREE.Texture>(() => createBadgeTexture({ image: null, user: badgeUser, side: "front" }));
   const [backTexture, setBackTexture] = useState<THREE.Texture>(() => createBadgeTexture({ image: null, user: badgeUser, side: "back" }));
 
-  useEffect(() => {
-    frontTextureRef.current = frontTexture;
-  }, [frontTexture]);
 
-  useEffect(() => {
-    backTextureRef.current = backTexture;
-  }, [backTexture]);
 
   const lineGeometry = useMemo(() => new MeshLineGeometry(), []);
   const lineMaterial = useMemo(
@@ -255,12 +260,41 @@ function Band({
     [isMobile, bandTexture],
   );
 
+  const handlePointerUp = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation();
+    const target = event.target as EventTarget & {
+      releasePointerCapture?: (pointerId: number) => void;
+    };
+    target.releasePointerCapture?.(event.pointerId);
+    drag(false);
+  };
+
+  const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation();
+    const target = event.target as EventTarget & {
+      setPointerCapture?: (pointerId: number) => void;
+    };
+    target.setPointerCapture?.(event.pointerId);
+    if (!card.current) return;
+    drag(new THREE.Vector3().copy(event.point).sub(vec.copy(card.current.translation())));
+  };
+
+  const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation();
+    hover(true);
+  };
+
+  const handlePointerOut = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation();
+    hover(false);
+  };
+
   useRopeJoint(fixed as RefObject<RapierRigidBody>, j1 as RefObject<RapierRigidBody>, [[0, 0, 0], [0, 0, 0], 1]);
   useRopeJoint(j1 as RefObject<RapierRigidBody>, j2 as RefObject<RapierRigidBody>, [[0, 0, 0], [0, 0, 0], 1]);
   useRopeJoint(j2 as RefObject<RapierRigidBody>, j3 as RefObject<RapierRigidBody>, [[0, 0, 0], [0, 0, 0], 1]);
   useSphericalJoint(j3 as RefObject<RapierRigidBody>, card as RefObject<RapierRigidBody>, [
     [0, 0, 0],
-    [0, 1.45, 0],
+    cardJointAnchor,
   ]);
 
   useEffect(() => {
@@ -413,7 +447,6 @@ function Band({
   useEffect(() => {
     return () => {
       frontTextureRef.current?.dispose();
-      backTextureRef.current?.dispose();
       lineGeometry.dispose();
       lineMaterial.dispose();
     };
@@ -472,28 +505,21 @@ function Band({
           <BallCollider args={[0.1]} />
         </RigidBody>
         <RigidBody position={[2, 0, 0]} ref={card} {...segmentProps} type={dragged ? "kinematicPosition" : "dynamic"}>
-          <CuboidCollider args={[0.8, 1.125, 0.01]} />
+          <CuboidCollider args={cardColliderArgs} />
           <group
-            scale={2.25}
-            position={[0, -1.2, -0.05]}
-            onPointerOver={() => hover(true)}
-            onPointerOut={() => hover(false)}
-            onPointerUp={(event: ThreeEvent<PointerEvent>) => {
-              const target = event.target as EventTarget & {
-                releasePointerCapture?: (pointerId: number) => void;
-              };
-              target.releasePointerCapture?.(event.pointerId);
-              drag(false);
-            }}
-            onPointerDown={(event: ThreeEvent<PointerEvent>) => {
-              const target = event.target as EventTarget & {
-                setPointerCapture?: (pointerId: number) => void;
-              };
-              target.setPointerCapture?.(event.pointerId);
-              if (!card.current) return;
-              drag(new THREE.Vector3().copy(event.point).sub(vec.copy(card.current.translation())));
-            }}
+            scale={cardVisualScale}
+            position={cardVisualOffset}
           >
+            <mesh
+              position={[0, 0, 0.03]}
+              onPointerOver={handlePointerOver}
+              onPointerOut={handlePointerOut}
+              onPointerUp={handlePointerUp}
+              onPointerDown={handlePointerDown}
+            >
+              <planeGeometry args={cardDragPlaneSize} />
+              <meshBasicMaterial transparent opacity={0.001} side={THREE.DoubleSide} depthWrite={false} />
+            </mesh>
             {/* Front: Live ReflectiveCard via drei Html (CSS2D-like) */}
             <Html
               transform
@@ -501,37 +527,85 @@ function Band({
               distanceFactor={8}
               position={[0, 0, 0.01]}
               style={{
-                width: "320px",
-                height: "500px",
-                pointerEvents: "auto",
+                width: `${CARD_PIXEL_WIDTH}px`,
+                height: `${CARD_PIXEL_HEIGHT}px`,
+                pointerEvents: "none",
               }}
             >
               <ReflectiveCard
-                grayscale={0}
-                blurStrength={2}
-                metalness={0.3}
-                roughness={0.5}
-                displacementStrength={1}
-                specularConstant={0.3}
+                overlayColor="rgba(0, 0, 0, 0.2)"
+                blurStrength={12}
+                glassDistortion={30}
+                metalness={1}
+                roughness={0.75}
+                displacementStrength={20}
+                noiseScale={1}
+                specularConstant={5}
+                grayscale={0.15}
                 color="#ffffff"
                 user={badgeUser ?? undefined}
                 capturedImageSrc={cardImage ?? undefined}
-                mediaTransform="scale(1.2)"
-                style={{ width: "320px", height: "500px" }}
+                style={{ width: `${CARD_PIXEL_WIDTH}px`, height: `${CARD_PIXEL_HEIGHT}px` }}
               />
             </Html>
-            {/* Back face (visible when card rotates) */}
-            <mesh geometry={nodes.card.geometry} rotation={[0, Math.PI, 0]}>
-              <meshPhysicalMaterial
-                map={backTexture}
-                map-anisotropy={16}
-                roughness={0.3}
-                metalness={0.1}
-                clearcoat={0.5}
-                clearcoatRoughness={0.2}
-                envMapIntensity={0.8}
+            {/* Back face: same ReflectiveCard as front, flipped */}
+            <Html
+              transform
+              occlude
+              distanceFactor={8}
+              position={[0, 0, -0.01]}
+              rotation={[0, Math.PI, 0]}
+              style={{
+                width: `${CARD_PIXEL_WIDTH}px`,
+                height: `${CARD_PIXEL_HEIGHT}px`,
+                pointerEvents: "none",
+              }}
+            >
+              <ReflectiveCard
+                overlayColor="rgba(0, 0, 0, 0.2)"
+                blurStrength={12}
+                glassDistortion={30}
+                metalness={1}
+                roughness={0.75}
+                displacementStrength={20}
+                noiseScale={1}
+                specularConstant={5}
+                grayscale={0.15}
+                color="#ffffff"
+                user={badgeUser ?? undefined}
+                capturedImageSrc={cardImage ?? undefined}
+                style={{ width: `${CARD_PIXEL_WIDTH}px`, height: `${CARD_PIXEL_HEIGHT}px` }}
               />
-            </mesh>
+            </Html>
+            {/* Back face: same ReflectiveCard as front, flipped */}
+            <Html
+              transform
+              occlude
+              distanceFactor={8}
+              position={[0, 0, -0.01]}
+              rotation={[0, Math.PI, 0]}
+              style={{
+                width: `${CARD_PIXEL_WIDTH}px`,
+                height: `${CARD_PIXEL_HEIGHT}px`,
+                pointerEvents: "none",
+              }}
+            >
+              <ReflectiveCard
+                overlayColor="rgba(0, 0, 0, 0.2)"
+                blurStrength={12}
+                glassDistortion={30}
+                metalness={1}
+                roughness={0.75}
+                displacementStrength={20}
+                noiseScale={1}
+                specularConstant={5}
+                grayscale={0.15}
+                color="#ffffff"
+                user={badgeUser ?? undefined}
+                capturedImageSrc={cardImage ?? undefined}
+                style={{ width: `${CARD_PIXEL_WIDTH}px`, height: `${CARD_PIXEL_HEIGHT}px` }}
+              />
+            </Html>
             <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
             <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
           </group>

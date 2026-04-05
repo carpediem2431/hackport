@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import './ReflectiveCard.css';
 import { Fingerprint, Activity, Lock } from 'lucide-react';
 
@@ -51,9 +51,11 @@ const ReflectiveCard = React.forwardRef<HTMLDivElement, ReflectiveCardProps>(({
   videoRef: externalVideoRef,
   mediaFit = 'cover',
   mediaPosition = 'center',
-  mediaTransform = 'scale(1.2) scaleX(-1)',
+  mediaTransform,
 }, ref) => {
   const internalVideoRef = useRef<HTMLVideoElement>(null);
+  const reactId = useId();
+  const filterId = `metallic-displacement-${reactId.replace(/:/g, '')}`;
 
   useEffect(() => {
     if (capturedImageSrc) return;
@@ -117,6 +119,8 @@ const ReflectiveCard = React.forwardRef<HTMLDivElement, ReflectiveCardProps>(({
     };
   }, [capturedImageSrc, externalVideoRef]);
 
+  const resolvedMediaTransform = mediaTransform ?? (capturedImageSrc ? 'none' : 'scaleX(-1)');
+
   const baseFrequency = 0.03 / Math.max(0.1, noiseScale);
   const saturation = 1 - Math.max(0, Math.min(1, grayscale));
 
@@ -132,14 +136,14 @@ const ReflectiveCard = React.forwardRef<HTMLDivElement, ReflectiveCardProps>(({
   const mediaStyle: React.CSSProperties = {
     objectFit: mediaFit,
     objectPosition: mediaPosition,
-    transform: mediaTransform,
+    transform: resolvedMediaTransform,
   };
 
   return (
     <div ref={ref} className={`reflective-card-container ${className}`} style={{ ...style, ...cssVariables }}>
       <svg className="reflective-svg-filters" aria-hidden="true">
         <defs>
-          <filter id="metallic-displacement" x="-20%" y="-20%" width="140%" height="140%">
+          <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%">
             <feTurbulence type="turbulence" baseFrequency={baseFrequency} numOctaves="2" result="noise" />
             <feColorMatrix in="noise" type="luminanceToAlpha" result="noiseAlpha" />
             <feDisplacementMap
