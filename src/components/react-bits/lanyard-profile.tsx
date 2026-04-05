@@ -1,8 +1,8 @@
 "use client";
 
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
-import { Canvas, type ThreeEvent, useFrame } from "@react-three/fiber";
-import { Environment, Lightformer, useGLTF, useTexture } from "@react-three/drei";
+import { Canvas, type ThreeEvent, useFrame, useThree } from "@react-three/fiber";
+import { Environment, Html, Lightformer, useGLTF, useTexture } from "@react-three/drei";
 import {
   BallCollider,
   CuboidCollider,
@@ -16,6 +16,7 @@ import {
 import { MeshLineGeometry, MeshLineMaterial } from "meshline";
 import * as THREE from "three";
 import styles from "@/components/react-bits/lanyard-profile.module.css";
+import ReflectiveCard from "@/components/ReflectiveCard";
 import { createBadgeCanvas, loadBadgeImage } from "@/lib/card-texture";
 
 interface LanyardProfileProps {
@@ -493,18 +494,33 @@ function Band({
               drag(new THREE.Vector3().copy(event.point).sub(vec.copy(card.current.translation())));
             }}
           >
-            <mesh geometry={nodes.card.geometry}>
-              <meshPhysicalMaterial
-                map={frontTexture}
-                map-anisotropy={16}
-                roughness={0.1}
+            {/* Front: Live ReflectiveCard via drei Html (CSS2D-like) */}
+            <Html
+              transform
+              occlude
+              distanceFactor={8}
+              position={[0, 0, 0.01]}
+              style={{
+                width: "320px",
+                height: "500px",
+                pointerEvents: "auto",
+              }}
+            >
+              <ReflectiveCard
+                grayscale={0}
+                blurStrength={2}
                 metalness={0.3}
-                reflectivity={0.8}
-                clearcoat={1}
-                clearcoatRoughness={0.1}
-                envMapIntensity={1.5}
+                roughness={0.5}
+                displacementStrength={1}
+                specularConstant={0.3}
+                color="#ffffff"
+                user={badgeUser ?? undefined}
+                capturedImageSrc={cardImage ?? undefined}
+                mediaTransform="scale(1.2)"
+                style={{ width: "320px", height: "500px" }}
               />
-            </mesh>
+            </Html>
+            {/* Back face (visible when card rotates) */}
             <mesh geometry={nodes.card.geometry} rotation={[0, Math.PI, 0]}>
               <meshPhysicalMaterial
                 map={backTexture}
