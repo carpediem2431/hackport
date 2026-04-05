@@ -41,24 +41,8 @@ export function createBadgeCanvas({
     return canvas;
   }
 
-  if (side === "back") {
-    // Back side — solid dark with user info
-    const fallback = context.createLinearGradient(0, 0, canvas.width, canvas.height);
-    fallback.addColorStop(0, "#f3f0eb");
-    fallback.addColorStop(0.55, "#ece7de");
-    fallback.addColorStop(1, "#dfd8cc");
-    context.fillStyle = fallback;
-    context.fillRect(0, 0, canvas.width, canvas.height);
+  void side;
 
-    context.fillStyle = "rgba(18,18,18,0.96)";
-    context.textAlign = "center";
-    context.font = "700 72px Inter, Arial, sans-serif";
-    context.fillText(user?.nickname ?? "HackPort User", canvas.width / 2, canvas.height / 2);
-
-    return canvas;
-  }
-
-  // Front side
   if (image) {
     // 꽉 차게 (cover), 중앙 정렬
     const scale = Math.max(canvas.width / image.width, canvas.height / image.height);

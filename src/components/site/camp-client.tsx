@@ -288,7 +288,7 @@ export function CampClient() {
                         ))}
                       </div>
                     </div>
-                    <div className="min-w-72 rounded-[24px] bg-white p-4">
+                    <div className="w-72 shrink-0 rounded-[24px] bg-white p-4">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted">핏 매칭</span>
                         <span className="text-lg font-semibold text-brand-strong">{fit.score}%</span>

@@ -24,6 +24,7 @@ interface LanyardProfileProps {
   fov?: number;
   transparent?: boolean;
   profileImage?: string | null;
+  cardImage?: string | null;
   user?: {
     nickname: string;
     role: string;
@@ -40,6 +41,7 @@ export default function LanyardProfile({
   fov = 20,
   transparent = true,
   profileImage = null,
+  cardImage = null,
   user = null,
 }: LanyardProfileProps) {
   const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== "undefined" && window.innerWidth < 768);
@@ -90,7 +92,7 @@ export default function LanyardProfile({
       >
         <ambientLight intensity={Math.PI} />
         <Physics gravity={gravity} timeStep={isMobile ? 1 / 30 : 1 / 60}>
-          <Band isMobile={isMobile} profileImage={profileImage} user={user} />
+          <Band isMobile={isMobile} profileImage={profileImage} cardImage={cardImage} user={user} />
         </Physics>
         <Environment blur={0.75}>
           <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
@@ -132,6 +134,28 @@ function createBadgeTexture({
   texture.needsUpdate = true;
   return texture;
 }
+
+function createTextureFromRenderedCard(image: HTMLImageElement) {
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth || image.width;
+  canvas.height = image.naturalHeight || image.height;
+  const context = canvas.getContext("2d");
+
+  if (context) {
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.flipY = false;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.repeat.x = -1;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
+  texture.needsUpdate = true;
+  return texture;
+}
 useGLTF.preload("/card.glb");
 useTexture.preload("/lanyard.png");
 
@@ -140,12 +164,14 @@ function Band({
   minSpeed = 0,
   isMobile = false,
   profileImage = null,
+  cardImage = null,
   user = null,
 }: {
   maxSpeed?: number;
   minSpeed?: number;
   isMobile?: boolean;
   profileImage?: string | null;
+  cardImage?: string | null;
   user?: {
     nickname: string;
     role: string;
@@ -277,6 +303,29 @@ function Band({
         return fallbackBackTexture;
       });
 
+      const renderedCard = await loadBadgeImage(cardImage);
+
+      if (renderedCard) {
+        const nextFrontTexture = createTextureFromRenderedCard(renderedCard);
+        const nextBackTexture = createTextureFromRenderedCard(renderedCard);
+
+        if (cancelled) {
+          nextFrontTexture.dispose();
+          nextBackTexture.dispose();
+          return;
+        }
+
+        setFrontTexture((previousTexture) => {
+          previousTexture?.dispose();
+          return nextFrontTexture;
+        });
+        setBackTexture((previousTexture) => {
+          previousTexture?.dispose();
+          return nextBackTexture;
+        });
+        return;
+      }
+
       const image = await loadBadgeImage(profileImage);
       const nextFrontTexture = createBadgeTexture({ image, user: badgeUser, side: "front" });
       const nextBackTexture = createBadgeTexture({ image, user: badgeUser, side: "back" });
@@ -302,7 +351,7 @@ function Band({
     return () => {
       cancelled = true;
     };
-  }, [badgeUser, profileImage]);
+  }, [badgeUser, cardImage, profileImage]);
 
   useEffect(() => {
     return () => {
@@ -395,6 +444,14 @@ function Band({
                 roughness={0.35}
                 metalness={0.15}
                 envMapIntensity={1.5}
+              />
+            </mesh>
+            <mesh geometry={nodes.card.geometry} rotation={[0, Math.PI, 0]}>
+              <meshStandardMaterial
+                map={backTexture}
+                map-anisotropy={16}
+                roughness={1}
+                metalness={0}
               />
             </mesh>
             <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />

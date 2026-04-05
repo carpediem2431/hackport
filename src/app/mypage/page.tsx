@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   Box,
   CalendarDays,
@@ -33,11 +34,11 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Textarea } from "@/components/ui/textarea";
 import ReflectiveCard from "@/components/ReflectiveCard";
 import { useLocalStorageState } from "@/hooks/use-local-storage-state";
+import { renderReflectiveCardPng } from "@/lib/render-reflective-card-png";
 import { storageKeys } from "@/lib/storage";
 import type { AuthUser } from "@/lib/types";
 import { translateCollabStyle, translateLevel, translateRole } from "@/lib/utils";
-import { createBadgeCanvas, loadBadgeImage } from "@/lib/card-texture";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const roleOptions = [
   "Frontend",
@@ -86,55 +87,65 @@ export default function MyPage() {
     null,
   );
   const {
-    value: savedImage,
-    setValue: setSavedImage,
-    ready: savedImageReady,
+    value: savedCardImage,
+    setValue: setSavedCardImage,
+    ready: savedCardImageReady,
   } = useLocalStorageState<string | null>(
     storageKeys.profileImage,
     null,
   );
   const translatedRole = currentUser ? translateRole(currentUser.role) : "";
   const translatedLevel = currentUser ? translateLevel(currentUser.level) : "";
-  const storageReady = currentUserReady && savedImageReady;
+  const storageReady = currentUserReady && savedCardImageReady;
+  const lanyardUser = useMemo(() => ({
+    nickname: currentUser?.nickname ?? "",
+    role: translatedRole,
+    level: translatedLevel,
+    email: currentUser?.email ?? "",
+  }), [currentUser?.email, currentUser?.nickname, translatedLevel, translatedRole]);
 
   const [viewMode, setViewMode] = useState<"3d" | "2d">("3d");
   const captureCanvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const confirmedImage = savedImageReady ? savedImage : null;
-
-  // 2D flat card: generate canvas-based data URL identical to 3D badge texture
-  const [flatCardUrl, setFlatCardUrl] = useState<string | null>(null);
+  const persistedCardImage = savedCardImageReady ? savedCardImage : null;
+  const [capturedFaceImage, setCapturedFaceImage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (viewMode !== "2d" || !confirmedImage) {
-      return;
-    }
-
     let cancelled = false;
 
-    const generateFlatCard = async () => {
-      const image = await loadBadgeImage(confirmedImage);
-      if (cancelled) return;
+    if (!capturedFaceImage) {
+      return () => {
+        cancelled = true;
+      };
+    }
 
-      const canvas = createBadgeCanvas({
-        image,
-        user: lanyardUser,
-        side: "front",
-      });
+    const captureReflectiveCard = async () => {
+      try {
+        const dataUrl = await renderReflectiveCardPng({
+          capturedImageSrc: capturedFaceImage,
+          user: lanyardUser,
+        });
 
-      const dataUrl = canvas.toDataURL("image/png");
-      if (!cancelled) {
-        setFlatCardUrl(dataUrl);
+        if (!cancelled) {
+          setSavedCardImage(dataUrl);
+          setCapturedFaceImage(null);
+        }
+      } catch (error) {
+        console.error("Failed to capture reflective card.", error);
+
+        if (!cancelled) {
+          setSavedCardImage(null);
+          setCapturedFaceImage(null);
+        }
       }
     };
 
-    void generateFlatCard();
+    void captureReflectiveCard();
 
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- lanyardUser is derived from currentUser which is stable
-  }, [viewMode, confirmedImage]);
+  }, [capturedFaceImage, lanyardUser, setSavedCardImage]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editDraft, setEditDraft] = useState<AuthUser | null>(null);
@@ -198,12 +209,6 @@ export default function MyPage() {
   const translatedCollabStyle = translateCollabStyle(currentUser.collaborationStyle);
   const intro = `${currentUser.nickname}님은 ${translatedRole} 역할로 해커톤 팀에 참여하며 ${translatedCollabStyle} 협업을 선호합니다.`;
   const memberSince = formatCreatedAt(currentUser.createdAt);
-  const lanyardUser = {
-    nickname: currentUser.nickname,
-    role: translatedRole,
-    level: translatedLevel,
-    email: currentUser.email,
-  };
   const highlights = [
     { icon: UserRound, label: "역할", value: translatedRole },
     { icon: Handshake, label: "협업 스타일", value: translatedCollabStyle },
@@ -228,14 +233,16 @@ export default function MyPage() {
     ctx.restore();
 
     const dataUrl = canvas.toDataURL("image/png");
-    setSavedImage(dataUrl);
+    setSavedCardImage(null);
+    setCapturedFaceImage(dataUrl);
   };
 
   const handleRetry = () => {
-    setSavedImage(null);
+    setCapturedFaceImage(null);
+    setSavedCardImage(null);
   };
 
-  const isCameraPhase = !confirmedImage;
+  const isCameraPhase = !persistedCardImage && !capturedFaceImage;
 
   return (
     <div className="container-shell py-16 sm:py-20">
@@ -260,44 +267,8 @@ export default function MyPage() {
             <p className="mt-3 text-sm leading-6 text-muted">카메라에 얼굴을 맞추고 아래 확인 버튼을 누르면 프로필 카드가 완성됩니다.</p>
           </div>
 
-          <div className="grid w-full gap-8 lg:grid-cols-[minmax(280px,0.92fr)_minmax(0,1.08fr)] lg:items-center">
-            <div className="relative overflow-hidden rounded-[32px] border border-brand-strong/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(244,239,255,0.9))] shadow-[0_24px_60px_rgba(82,39,255,0.12)]">
-              <div className="flex min-h-[420px] flex-col justify-between p-6 sm:min-h-[500px] sm:p-8">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-strong/80">HackPort preview</p>
-                    <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">{currentUser.nickname}</p>
-                    <p className="mt-2 text-sm text-muted">{translatedRole}</p>
-                  </div>
-                  <Badge className="bg-brand-soft/25 text-brand-strong">촬영 대기</Badge>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="rounded-[28px] border border-white/70 bg-white/75 p-5 shadow-sm backdrop-blur-sm">
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted">Digital ID</p>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <div>
-                        <p className="text-xs text-muted">레벨</p>
-                        <p className="mt-1 text-sm font-medium text-foreground">{translatedLevel}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted">이메일</p>
-                        <p className="mt-1 break-all text-sm font-medium text-foreground">{currentUser.email}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[28px] border border-dashed border-brand-strong/20 bg-white/55 px-5 py-6 text-center">
-                    <p className="text-sm font-semibold text-foreground">랜야드 미리보기는 유지됩니다</p>
-                    <p className="mt-2 text-sm leading-6 text-muted">
-                      프로필 이미지를 캡처하면 3D 랜야드가 활성화됩니다. 캡처 중에는 가벼운 미리보기 카드만 보여줘서 WebGL 컨텍스트 손실을 피합니다.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative">
+          <div className="flex w-full justify-center">
+            <div className="relative flex justify-center">
               <div className="pointer-events-none absolute inset-x-10 top-16 bottom-10 rounded-[36px] bg-[radial-gradient(circle_at_top,rgba(177,158,239,0.28),transparent_55%)] blur-3xl" />
               <ReflectiveCard
                 grayscale={0}
@@ -368,40 +339,48 @@ export default function MyPage() {
                       {viewMode === "3d" ? (
                         <div className="relative overflow-visible">
                           <div className="relative">
-                            <LanyardProfile
-                              profileImage={confirmedImage}
-                              user={lanyardUser}
-                              gravity={[0, -40, 0]}
-                              position={[0, 0, 14]}
-                              fov={20}
-                            />
+                            {persistedCardImage ? (
+                              <LanyardProfile
+                                cardImage={persistedCardImage}
+                                user={lanyardUser}
+                                gravity={[0, -40, 0]}
+                                position={[0, 0, 14]}
+                                fov={20}
+                              />
+                            ) : (
+                              <div className="flex h-[500px] items-center justify-center rounded-[32px] border border-white/70 bg-white/80 px-6 text-center text-sm text-muted shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:h-[620px]">
+                                ReflectiveCard 효과를 3D 카드에 적용하는 중입니다.
+                              </div>
+                            )}
                           </div>
                         </div>
                       ) : (
                         <div className="relative overflow-visible">
                           <div className="relative flex h-[500px] items-center justify-center sm:h-[620px]">
-                            {flatCardUrl ? (
-                              <img
-                                src={flatCardUrl}
+                            {persistedCardImage ? (
+                              <Image
+                                src={persistedCardImage}
                                 alt="프로필 카드"
+                                width={384}
+                                height={600}
+                                unoptimized
                                 style={{
-                                  width: "min(100%, 396.8px)",
-                                  aspectRatio: "900/1280",
+                                  width: "min(100%, 384px)",
                                   height: "auto",
-                                  borderRadius: "12px",
+                                  borderRadius: "20px",
                                 }}
                               />
-                            ) : (
-                              <div
-                                style={{
-                                  width: "min(100%, 396.8px)",
-                                  aspectRatio: "900/1280",
-                                  height: "auto",
-                                  borderRadius: "12px",
-                                  background: "linear-gradient(135deg, #f3f0eb 0%, #ece7de 55%, #dfd8cc 100%)",
-                                }}
+                            ) : capturedFaceImage ? (
+                              <ReflectiveCard
+                                grayscale={0}
+                                color="#ffffff"
+                                className="max-w-full"
+                                style={{ width: "min(100%, 384px)", height: "auto", aspectRatio: "320 / 500" }}
+                                user={lanyardUser}
+                                capturedImageSrc={capturedFaceImage}
+                                mediaTransform="scale(1.2)"
                               />
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       )}

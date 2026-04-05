@@ -33,7 +33,7 @@ interface ReflectiveCardProps {
   mediaTransform?: React.CSSProperties["transform"];
 }
 
-const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
+const ReflectiveCard = React.forwardRef<HTMLDivElement, ReflectiveCardProps>(({ 
   blurStrength = 12,
   color = '#000000',
   metalness = 1,
@@ -52,7 +52,7 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
   mediaFit = 'cover',
   mediaPosition = 'center',
   mediaTransform = 'scale(1.2) scaleX(-1)',
-}) => {
+}, ref) => {
   const internalVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -136,7 +136,7 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
   };
 
   return (
-    <div className={`reflective-card-container ${className}`} style={{ ...style, ...cssVariables }}>
+    <div ref={ref} className={`reflective-card-container ${className}`} style={{ ...style, ...cssVariables }}>
       <svg className="reflective-svg-filters" aria-hidden="true">
         <defs>
           <filter id="metallic-displacement" x="-20%" y="-20%" width="140%" height="140%">
@@ -223,6 +223,8 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+ReflectiveCard.displayName = 'ReflectiveCard';
 
 export default ReflectiveCard;

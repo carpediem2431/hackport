@@ -45,12 +45,7 @@ export default function HomePage() {
               <AnimatedText className="max-w-4xl font-display text-5xl font-semibold leading-[1.14] tracking-tight text-balance text-white sm:text-6xl lg:text-7xl">
                 해커톤의 시작부터 제출과 결과 해석까지, 한 흐름으로 연결합니다.
               </AnimatedText>
-              <AnimatedText
-                as="p"
-                className="mt-6 max-w-xl text-pretty text-lg leading-8 text-white/85"
-              >
-                HackPort는 해커톤 탐색, 팀 매칭, 제출 준비, 리더보드 확인을 하나의 워크스페이스에 묶고, 브라우저 안에서 사용자의 진행 상태를 기억해 다음 행동을 안내합니다.
-              </AnimatedText>
+
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/hackathons">
